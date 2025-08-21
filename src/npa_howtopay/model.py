@@ -16,48 +16,46 @@ def compute_blue_columns(year: int, gas_params: GasParams, shared_params: Shared
 
 
 def run_model(scenario_params: ScenarioParams, input_params: InputParams, npa_projects: pl.DataFrame) -> pl.DataFrame:
-    # initialize all the state
-    gas_ratebase = 0
-    electric_ratebase = 0
-    num_gas_users = input_params.num_users
-    num_electric_users = input_params.num_users
-
-    gas_capex_projects = []
-    electric_capex_projects = []
+    gas_capex_projects = pl.DataFrame()
+    electric_capex_projects = pl.DataFrame()
 
     output_df = pl.DataFrame()
 
+    live_params = input_params
+
     for year in range(scenario_params.start_year, scenario_params.end_year):
         # INFLATION - probably looks like evolving input_params to current_params
-        do_cost_inflation(year, input_params)
+        live_params = do_cost_inflation(year, live_params)
 
         # get the npas for this year
-        npas_this_year = get_info_about_projects(npa_projects, year)  # polars groupby year, weighted_sum
+        npas_this_year = npa_projects.filter(pl.col("year") == year)
 
         ####### ticket
         # gas capex
-        gas_capex_projects.append(
+        gas_capex_projects = gas_capex_projects.vstack(
             non_lpp_gas_capex_projects(year, input_params)
         )  # maybe has different depreciation schedule
-        gas_capex_projects.append(lpp_gas_capex_projects(year, input_params, npas_this_year))
+        gas_capex_projects = gas_capex_projects.vstack(lpp_gas_capex_projects(year, input_params, npas_this_year))
 
         ####### ticket
         # electric capex
-        electric_capex_projects.append(non_npa_electric_capex_projects(year, input_params))
-        electric_capex_projects.append(grid_upgrade_capex_projects(year, input_params, npa_projects))
+        electric_capex_projects = electric_capex_projects.vstack(non_npa_electric_capex_projects(year, input_params))
+        electric_capex_projects = electric_capex_projects.vstack(
+            grid_upgrade_capex_projects(year, input_params, npa_projects)
+        )
 
         # npa capex
         if scenario_params.capex_opex == "capex":
-            npa_capex = get_npa_capex_project(npas_this_year)
+            npa_capex = get_npa_capex_projects(npas_this_year, year, input_params)
             if scenario_params.gas_electric == "gas":
-                gas_capex_projects.append(npa_capex)
+                gas_capex_projects = gas_capex_projects.vstack(npa_capex)
             elif scenario_params.gas_electric == "electric":
-                electric_capex_projects.append(npa_capex)
+                electric_capex_projects = electric_capex_projects.vstack(npa_capex)
 
-        gas_ratebase = update_ratebase(year, gas_ratebase, gas_capex_projects)
-        electric_ratebase = update_ratebase(year, electric_ratebase, electric_capex_projects)
+        gas_ratebase = get_ratebase_from_capex_projects(year, gas_capex_projects)
+        electric_ratebase = get_ratebase_from_capex_projects(year, electric_capex_projects)
 
-        num_gas_users -= npas_this_year.num_converts
+        ## TODO: opex stuff?
 
         ####### ticket
         intermediate_columns = compute_blue_columns()  # returns pl.Series

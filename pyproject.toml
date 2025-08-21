@@ -70,7 +70,7 @@ line-length = 120
 fix = true
 
 [tool.ruff.lint]
-exclude = ["**/*.py", "**/*.pyi"] # TEMPORARY!!!!
+exclude = ["**/capex_project.py", "**/model.py", "**/npa_project.py", "**/params.py", "**/utils.py", "**/web_params.py", "skeleton.pyi"] # TEMPORARY!!!!
 select = [
     # flake8-2020
     "YTT",
