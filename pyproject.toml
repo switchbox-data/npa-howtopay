@@ -70,6 +70,7 @@ line-length = 120
 fix = true
 
 [tool.ruff.lint]
+exclude = ["**/*.py", "**/*.pyi"] # TEMPORARY!!!!
 select = [
     # flake8-2020
     "YTT",
