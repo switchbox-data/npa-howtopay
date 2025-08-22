@@ -1,2 +1,2 @@
-def blank_test():
+def test_blank_test():
     pass

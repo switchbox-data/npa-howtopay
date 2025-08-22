@@ -10,7 +10,7 @@ import polars as pl
 
 # functions for generating dataframe rows for capex projects
 def get_synthetic_initial_capex_projects(
-    start_year: int, initial_ratebase: float, depreciation_lifetime: float
+    start_year: int, initial_ratebase: float, depreciation_lifetime: int
 ) -> pl.DataFrame:
     total_weight = (depreciation_lifetime * (depreciation_lifetime + 1) / 2) / depreciation_lifetime
     est_original_cost_per_year = initial_ratebase / total_weight
@@ -25,7 +25,7 @@ def get_non_lpp_gas_capex_projects(
     year: int,
     current_ratebase: float,
     baseline_non_lpp_gas_ratebase_growth: float,
-    depreciation_lifetime: float,
+    depreciation_lifetime: int,
 ) -> pl.DataFrame:
     return pl.DataFrame({
         "project_year": year,
@@ -38,7 +38,7 @@ def get_lpp_gas_capex_projects(
     year: int,
     gas_bau_lpp_costs_per_year: pl.DataFrame,
     npas_this_year: pl.DataFrame,
-    depreciation_lifetime: float,
+    depreciation_lifetime: int,
 ) -> pl.DataFrame:
     assert all(npas_this_year["year"] == year)  # noqa: S101
     npa_pipe_costs_avoided = npas_this_year.select(pl.col("pipe_value_per_user") * pl.col("num_converts")).sum().item()
@@ -58,7 +58,7 @@ def get_non_npa_electric_capex_projects(
     year: int,
     current_ratebase: float,
     baseline_electric_ratebase_growth: float,
-    depreciation_lifetime: float,
+    depreciation_lifetime: int,
 ) -> pl.DataFrame:
     return pl.DataFrame({
         "project_year": year,
@@ -73,7 +73,7 @@ def get_grid_upgrade_capex_projects(
     peak_hp_kw: float,
     peak_aircon_kw: float,
     distribution_cost_per_peak_kw_increase: float,
-    grid_upgrade_depreciation_lifetime: float,
+    grid_upgrade_depreciation_lifetime: int,
 ) -> pl.DataFrame:
     assert all(npas_this_year["year"] == year)  # noqa: S101
     peak_kw_increase = (
@@ -103,10 +103,10 @@ def get_grid_upgrade_capex_projects(
 
 
 def get_npa_capex_projects(
-    year: int, npas_this_year: pl.DataFrame, npa_install_cost: float, npa_lifetime: float
+    year: int, npas_this_year: pl.DataFrame, npa_install_cost: float, npa_lifetime: int
 ) -> pl.DataFrame:
     assert all(npas_this_year["year"] == year)  # noqa: S101
-    npa_total_cost = npa_install_cost * npas_this_year.sum("num_converts")
+    npa_total_cost = npa_install_cost * npas_this_year.select(pl.col("num_converts")).sum().item()
     if npa_total_cost > 0:
         return pl.DataFrame({
             "project_year": year,
@@ -125,11 +125,11 @@ def compute_ratebase_from_capex_projects(df: pl.DataFrame, year: int) -> float:
         .otherwise((1 - (pl.lit(year) - pl.col("project_year")) / pl.col("depreciation_lifetime")).clip(lower_bound=0))
         .alias("depreciation_fraction")
     )
-    return df.select(pl.col("depreciation_fraction") * pl.col("original_cost")).sum().item()
+    return float(df.select(pl.col("depreciation_fraction") * pl.col("original_cost")).sum().item())
 
 
 def compute_depreciation_expense_from_capex_projects(df: pl.DataFrame, year: int) -> float:
-    return (
+    return float(
         df.select(
             pl.when(
                 (pl.lit(year) > pl.col("project_year"))
