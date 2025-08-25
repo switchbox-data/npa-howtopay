@@ -21,6 +21,18 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, npa_pr
 
     live_params = input_params
 
+    # synthetic initial capex projects
+    gas_initial_capex_projects = cp.get_synthetic_initial_capex_projects(
+        start_year=input_params.start_year,
+        initial_ratebase=gas_ratebase,
+        depreciation_lifetime=input_params.gas_depreciation_lifetime,
+    )
+    electric_initial_capex_projects = cp.get_synthetic_initial_capex_projects(
+        start_year=input_params.start_year,
+        initial_ratebase=electric_ratebase,
+        depreciation_lifetime=input_params.electric_depreciation_lifetime,
+    )
+
     for year in range(scenario_params.start_year, scenario_params.end_year):
         # INFLATION - probably looks like evolving input_params to current_params
         live_params = do_cost_inflation(year, live_params)  # TODO
@@ -32,11 +44,7 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, npa_pr
         gas_capex_projects = pl.concat(
             [
                 gas_capex_projects,
-                cp.get_synthetic_initial_capex_projects(
-                    year=year,
-                    initial_ratebase=input_params.gas_ratebase,
-                    depreciation_lifetime=input_params.gas_depreciation_lifetime,
-                ),
+                gas_initial_capex_projects.filter(pl.col("project_year") == year),
                 cp.get_non_lpp_gas_capex_projects(
                     year=year,
                     current_ratebase=gas_ratebase,
@@ -57,6 +65,7 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, npa_pr
         electric_capex_projects = pl.concat(
             [
                 electric_capex_projects,
+                electric_initial_capex_projects.filter(pl.col("project_year") == year),
                 cp.get_non_npa_electric_capex_projects(
                     year=year,
                     current_ratebase=electric_ratebase,
