@@ -3,7 +3,7 @@ from typing import Literal
 import yaml
 import polars as pl
 
-from npa_project import NpaProject
+# from npa_project import NpaProject
 import os
 
 # Get the directory where this file is located
@@ -43,7 +43,6 @@ class ElectricParams:
     aircon_percent_adoption_pre_npa: float
     aircon_peak_kw: float
     distribution_cost_per_peak_kw_increase: float
-    grid_upgrade_depreciation_lifetime: float
     hp_efficiency: float
     hp_peak_kw: float
     electricity_generation_cost_per_kwh: float
@@ -58,6 +57,7 @@ class SharedParams:
     npa_lifetime: float
     npa_install_costs: float
     discount_rate: float
+    start_year: int
 
 
 @define
@@ -84,6 +84,8 @@ class TimeSeriesParams:  # TODO: think through this more
 class ScenarioParams:
     gas_electric: Literal["gas", "electric"] = field(validator=validators.in_(["gas", "electric"]))
     capex_opex: Literal["capex", "opex"] = field(validator=validators.in_(["capex", "opex"]))
+    end_year: int
+    start_year: int
 
 
 def _load_params_from_yaml(yaml_path: str) -> InputParams:
