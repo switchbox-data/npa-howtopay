@@ -23,14 +23,14 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, npa_pr
 
     # synthetic initial capex projects
     gas_initial_capex_projects = cp.get_synthetic_initial_capex_projects(
-        start_year=input_params.start_year,
+        start_year=input_params.shared.start_year,
         initial_ratebase=gas_ratebase,
-        depreciation_lifetime=input_params.gas_depreciation_lifetime,
+        depreciation_lifetime=input_params.gas.default_depreciation_lifetime,
     )
     electric_initial_capex_projects = cp.get_synthetic_initial_capex_projects(
-        start_year=input_params.start_year,
+        start_year=input_params.shared.start_year,
         initial_ratebase=electric_ratebase,
-        depreciation_lifetime=input_params.electric_depreciation_lifetime,
+        depreciation_lifetime=input_params.electric.default_depreciation_lifetime,
     )
 
     for year in range(scenario_params.start_year, scenario_params.end_year):
@@ -48,14 +48,14 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, npa_pr
                 cp.get_non_lpp_gas_capex_projects(
                     year=year,
                     current_ratebase=gas_ratebase,
-                    baseline_non_lpp_gas_ratebase_growth=input_params.gas_ratebase_growth,
-                    depreciation_lifetime=input_params.gas_depreciation_lifetime,
+                    baseline_non_lpp_gas_ratebase_growth=input_params.gas.ratebase_growth,
+                    depreciation_lifetime=input_params.gas.default_depreciation_lifetime,
                 ),
                 cp.get_lpp_gas_capex_projects(
                     year=year,
                     gas_bau_lpp_costs_per_year=input_params.gas_bau_lpp_costs_per_year,
                     npas_this_year=npas_this_year,
-                    depreciation_lifetime=input_params.gas_depreciation_lifetime,
+                    depreciation_lifetime=input_params.gas.lpp_depreciation_lifetime,
                 ),
             ],
             how="vertical",
@@ -69,16 +69,16 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, npa_pr
                 cp.get_non_npa_electric_capex_projects(
                     year=year,
                     current_ratebase=electric_ratebase,
-                    baseline_electric_ratebase_growth=input_params.electric_ratebase_growth,
-                    depreciation_lifetime=input_params.electric_depreciation_lifetime,
+                    baseline_electric_ratebase_growth=input_params.electric.ratebase_growth,
+                    depreciation_lifetime=input_params.electric.default_depreciation_lifetime,
                 ),
                 cp.get_grid_upgrade_capex_projects(
                     year=year,
                     npas_this_year=npas_this_year,
-                    peak_hp_kw=input_params.peak_hp_kw,
-                    peak_aircon_kw=input_params.peak_aircon_kw,
-                    distribution_cost_per_peak_kw_increase=input_params.distribution_cost_per_peak_kw_increase,
-                    grid_upgrade_depreciation_lifetime=input_params.grid_upgrade_depreciation_lifetime,
+                    peak_hp_kw=input_params.electric.hp_peak_kw,
+                    peak_aircon_kw=input_params.electric.aircon_peak_kw,
+                    distribution_cost_per_peak_kw_increase=input_params.electric.distribution_cost_per_peak_kw_increase,
+                    grid_upgrade_depreciation_lifetime=input_params.electric.grid_upgrade_depreciation_lifetime,
                 ),
             ],
             how="vertical",
@@ -87,7 +87,7 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, npa_pr
         # npa capex
         if scenario_params.capex_opex == "capex":
             npa_capex = cp.get_npa_capex_projects(
-                npas_this_year, year, input_params.npa_install_cost, input_params.npa_lifetime
+                npas_this_year, year, input_params.shared.npa_install_costs, input_params.shared.npa_lifetime
             )
             if scenario_params.gas_electric == "gas":
                 gas_capex_projects = gas_capex_projects.vstack(npa_capex)
