@@ -1,11 +1,50 @@
 import polars as pl
-from .params import InputParams, ScenarioParams, load_scenario_from_yaml, GasParams, SharedParams
+from .params import InputParams, ScenarioParams, load_scenario_from_yaml, KWH_PER_THERM, TimeSeriesParams
 
+# import sys
+# sys.path.append('/workspaces/npa-howtopay')
 import capex_project as cp
+import npa_project as npa
 
 
-def compute_blue_columns(year: int, gas_params: GasParams, shared_params: SharedParams) -> pl.DataFrame:
+def compute_intermediate_cols(
+    year: int,
+    input_params: InputParams,
+    ts_params: TimeSeriesParams,
+    gas_electric: Literal["gas", "electric"],
+) -> pl.DataFrame:
     # TODO: implement this
+    if gas_electric == "gas":
+        num_gas_users = input_params.gas.num_users_init - npa.compute_num_converts_from_df(ts_params.npa_projects, year)
+        total_usage = num_gas_users * input_params.gas.per_user_heating_need_therms
+        # total_ratebase = gas_ratebase
+        costs_volumetric = total_usage * input_params.gas.gas_generation_cost_per_therm
+        costs_fixed = (
+            ts_params.gas_fixed_overhead_costs + gas_maintenance_cost + npa_opex
+        )  # npa_opex is 0 if scenario_params.capex_opex == "capex" OR gas_electric == "electric"
+        # costs_depreciation = gas_depreciation_expense
+        total_costs = costs_fixed + costs_volumetric
+        revenue_requirement = gas_total_ratebase * input_params.gas.ror + total_costs + gas_costs_depreciation
+
+    if gas_electric == "electric":
+        total_converts_cumul = npa.compute_num_converts_from_df(ts_params.npa_projects, year)
+        total_usage = input_params.electric.num_users_init * input_params.electric.per_user_electric_need_kwh + (
+            total_converts_cumul
+            * input_params.gas.per_user_heating_need_therms
+            * KWH_PER_THERM
+            / input_params.electric.hp_efficiency
+        )
+        # total_ratebase = electric_ratebase
+        costs_volumetric = total_usage * input_params.electric.electricity_generation_cost_per_kwh
+        costs_fixed = (
+            ts_params.electric_fixed_overhead_costs + electric_maintenance_cost + npa_opex
+        )  # npa_opex is 0 if scenario_params.capex_opex == "capex" OR gas_electric == "gas"
+        # costs_depreciation = electric_depreciation_expense
+        total_costs = costs_fixed + costs_volumetric
+        revenue_requirement = (
+            electric_total_ratebase * input_params.electric.ror + total_costs + electric_costs_depreciation
+        )
+
     # gas_usage = input_params.gas_usage_per_user * num_gas_users
     # gas_costs_volumetric = gas_usage * input_params.gas_cost_per_therm
     # return pl.DataFrame({"year": year, "gas_usage": gas_usage, "gas_costs_volumetric": gas_costs_volumetric})
@@ -96,13 +135,29 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, npa_pr
             elif scenario_params.gas_electric == "electric":
                 electric_capex_projects = electric_capex_projects.pl.concat(npa_capex)
 
+        # calculate ratebase
         gas_ratebase = cp.compute_ratebase_from_capex_projects(year, gas_capex_projects)
         electric_ratebase = cp.compute_ratebase_from_capex_projects(year, electric_capex_projects)
 
+        # calculate depreciation expense
+        gas_depreciation_expense = cp.compute_depreciation_expense_from_capex_projects(year, gas_capex_projects)
+        electric_depreciation_expense = cp.compute_depreciation_expense_from_capex_projects(
+            year, electric_capex_projects
+        )
+
+        # calculate maintanence costs
+        gas_maintanence_costs = cp.compute_maintanence_costs(
+            year, gas_capex_projects, input_params.gas.pipeline_maintenance_cost_pct
+        )
+        electric_maintanence_costs = cp.compute_maintanence_costs(
+            year, electric_capex_projects, input_params.electric.electric_maintenance_cost_pct
+        )
+
         ## TODO: opex stuff?
 
-        ####### TODO: ticket
-        intermediate_columns = compute_blue_columns()  # returns pl.DataFrame
+        # TODO: ticket
+        intermediate_df_gas = compute_intermediate_cols(year, input_params, scenario_params, "gas")
+        intermediate_df_electric = compute_intermediate_cols(year, input_params, scenario_params, "electric")
 
         # Build output row for this year
         year_output = pl.DataFrame({
