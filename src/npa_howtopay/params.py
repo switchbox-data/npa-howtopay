@@ -13,6 +13,7 @@ DATA_DIR = os.path.join(CURRENT_DIR, "data")
 
 @define
 class GasParams:
+    baseline_non_lpp_ratebase_growth: float
     default_depreciation_lifetime: int
     gas_generation_cost_per_therm: float
     lpp_depreciation_lifetime: int
@@ -22,7 +23,6 @@ class GasParams:
     pipeline_maintenance_cost_pct: float
     pipeline_replacement_cost: float
     pipeline_replacement_lifetime: float
-    ratebase_growth: float
     ratebase_init: float
     ror: float
 
@@ -30,7 +30,7 @@ class GasParams:
 @define
 class ElectricParams:
     aircon_peak_kw: float
-    baseline_electric_ratebase_growth: float
+    baseline_non_npa_ratebase_growth: float
     default_depreciation_lifetime: int
     distribution_cost_per_peak_kw_increase: float
     electric_maintenance_cost_pct: float
@@ -40,7 +40,6 @@ class ElectricParams:
     hp_peak_kw: float
     num_users_init: int
     per_user_electric_need_kwh: float
-    ratebase_growth: float
     ratebase_init: float
     ror: float
 

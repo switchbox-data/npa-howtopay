@@ -21,6 +21,7 @@ dependencies = [
     "attrs>=25.3.0",
     "numpy>=2.0.2",
     "polars>=1.32.3",
+    "types-pyyaml>=6.0.12.20250822",
 ]
 
 [project.urls]
