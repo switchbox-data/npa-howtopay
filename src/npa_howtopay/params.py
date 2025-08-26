@@ -10,6 +10,8 @@ import os
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(CURRENT_DIR, "data")
 
+KWH_PER_THERM = 29.3071
+
 
 @define
 class GasParams:
