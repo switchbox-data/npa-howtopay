@@ -2,6 +2,7 @@ run_name: sample
 description: "Sample run - High adoption, high efficiency"
 
 gas:
+  baseline_non_lpp_ratebase_growth: 0.015
   default_depreciation_lifetime: 28
   gas_generation_cost_per_therm: 0.055
   lpp_depreciation_lifetime: 60
@@ -11,13 +12,12 @@ gas:
   pipeline_maintenance_cost_pct: 0.022
   pipeline_replacement_cost: 9000.0
   pipeline_replacement_lifetime: 30.0
-  ratebase_growth: 0.015
   ratebase_init: 900000.0
   ror: 0.08
 
 electric:
   aircon_peak_kw: 2.8
-  baseline_electric_ratebase_growth: 0.02
+  baseline_non_npa_ratebase_growth: 0.02
   default_depreciation_lifetime: 22
   distribution_cost_per_peak_kw_increase: 550.0
   electric_maintenance_cost_pct: 0.014
@@ -27,7 +27,6 @@ electric:
   hp_peak_kw: 4.5
   num_users_init: 550
   per_user_electric_need_kwh: 35.0
-  ratebase_growth: 0.02
   ratebase_init: 2500000.0
   ror: 0.09
 
