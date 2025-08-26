@@ -50,7 +50,7 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, npa_pr
                 cp.get_non_lpp_gas_capex_projects(
                     year=year,
                     current_ratebase=gas_ratebase,
-                    baseline_non_lpp_gas_ratebase_growth=input_params.gas.ratebase_growth,
+                    baseline_non_lpp_gas_ratebase_growth=input_params.gas.baseline_non_lpp_ratebase_growth,
                     depreciation_lifetime=input_params.gas.default_depreciation_lifetime,
                 ),
                 cp.get_lpp_gas_capex_projects(
@@ -71,7 +71,7 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, npa_pr
                 cp.get_non_npa_electric_capex_projects(
                     year=year,
                     current_ratebase=electric_ratebase,
-                    baseline_electric_ratebase_growth=input_params.electric.ratebase_growth,
+                    baseline_electric_ratebase_growth=input_params.electric.baseline_non_npa_ratebase_growth,
                     depreciation_lifetime=input_params.electric.default_depreciation_lifetime,
                 ),
                 cp.get_grid_upgrade_capex_projects(
