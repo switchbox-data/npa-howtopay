@@ -18,16 +18,19 @@ from src.npa_howtopay.capex_project import (
 
 
 def test_get_synthetic_initial_capex_projects():
+    start_year = 2025
+    initial_ratebase = 6000
     # 3000 * (1 + 2/3 + 1/3) = 6000
-    df = get_synthetic_initial_capex_projects(start_year=2025, initial_ratebase=6000, depreciation_lifetime=3)
+    df = get_synthetic_initial_capex_projects(
+        start_year=start_year, initial_ratebase=initial_ratebase, depreciation_lifetime=3
+    )
     ref_df = pl.DataFrame({
         "project_year": [2023, 2024, 2025],
         "original_cost": [3000, 3000, 3000],
         "depreciation_lifetime": [3, 3, 3],
     })
-    print(df)
-    print(ref_df)
     assert_frame_equal(ref_df, df, check_dtypes=False)
+    assert np.isclose(compute_ratebase_from_capex_projects(start_year, df), initial_ratebase)
 
 
 def test_get_non_lpp_gas_capex_projects():
