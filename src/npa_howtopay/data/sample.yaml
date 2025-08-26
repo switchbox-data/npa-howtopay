@@ -2,24 +2,21 @@ run_name: sample
 description: "Sample run - High adoption, high efficiency"
 
 gas:
-  baseline_gas_lpp_costs_per_year: 45000.0
-  baseline_non_lpp_gas_ratebase_growth: 0.015
   default_depreciation_lifetime: 28
   gas_generation_cost_per_therm: 0.055
-  lpp_depreciation_lifetime: 23
+  lpp_depreciation_lifetime: 60
   non_lpp_depreciation_lifetime: 28
   num_users_init: 450
-  per_user_heating_need: 45.0
+  per_user_heating_need_therms: 45.0
   pipeline_maintenance_cost_pct: 0.022
   pipeline_replacement_cost: 9000.0
-  pipeline_replacement_lifetime: 38
+  pipeline_replacement_lifetime: 30.0
   ratebase_growth: 0.015
   ratebase_init: 900000.0
   ror: 0.08
 
 electric:
   aircon_peak_kw: 2.8
-  aircon_percent_adoption_pre_npa: 0.75
   baseline_electric_ratebase_growth: 0.02
   default_depreciation_lifetime: 22
   distribution_cost_per_peak_kw_increase: 550.0
@@ -29,9 +26,7 @@ electric:
   hp_efficiency: 0.87
   hp_peak_kw: 4.5
   num_users_init: 550
-  peak_kw_summer_headroom_per_project: 3.5
-  peak_kw_winter_headroom_per_project: 5.5
-  per_user_electric_need: 35.0
+  per_user_electric_need_kwh: 35.0
   ratebase_growth: 0.02
   ratebase_init: 2500000.0
   ror: 0.09
@@ -39,6 +34,6 @@ electric:
 shared:
   cost_inflation_rate: 0.03
   discount_rate: 0.075
-  inflation_rate: 0.025
   npa_install_costs: 5500.0
   npa_lifetime: 18.0
+  start_year: 2025
