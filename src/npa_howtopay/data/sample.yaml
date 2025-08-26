@@ -26,7 +26,7 @@ electric:
   electric_maintenance_cost_pct: 0.014
   electricity_generation_cost_per_kwh: 0.11
   grid_upgrade_depreciation_lifetime: 18
-  hp_efficiency: 0.87
+  hp_efficiency: 3
   hp_peak_kw: 4.5
   num_users_init: 550
   peak_kw_summer_headroom_per_project: 3.5
@@ -40,6 +40,5 @@ shared:
   start_year: 2025
   cost_inflation_rate: 0.03
   discount_rate: 0.075
-  inflation_rate: 0.025
   npa_install_costs: 5500.0
   npa_lifetime: 18.0

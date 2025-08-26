@@ -92,9 +92,9 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, npa_pr
                 npas_this_year, year, input_params.shared.npa_install_costs, input_params.shared.npa_lifetime
             )
             if scenario_params.gas_electric == "gas":
-                gas_capex_projects = gas_capex_projects.vstack(npa_capex)
+                gas_capex_projects = gas_capex_projects.pl.concat(npa_capex)
             elif scenario_params.gas_electric == "electric":
-                electric_capex_projects = electric_capex_projects.vstack(npa_capex)
+                electric_capex_projects = electric_capex_projects.pl.concat(npa_capex)
 
         gas_ratebase = cp.compute_ratebase_from_capex_projects(year, gas_capex_projects)
         electric_ratebase = cp.compute_ratebase_from_capex_projects(year, electric_capex_projects)
@@ -127,5 +127,5 @@ def analyze_scenarios(scenario_runs: dict[ScenarioParams, pl.DataFrame]) -> None
 if __name__ == "__main__":
     scenario_params = ScenarioParams(start_year=2025, end_year=2050, gas_electric="gas", capex_opex="capex")
     input_params = load_scenario_from_yaml("sample")
-    npa_projects = pl.DataFrame()
+    npa_projects = pl.DataFrame()  # TODO
     run_model(scenario_params, input_params, npa_projects)
