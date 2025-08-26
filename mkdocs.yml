@@ -15,7 +15,7 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-          paths: ["default"]
+          paths: ["src/npa_howtopay"]
 theme:
   name: material
   feature:

@@ -19,6 +19,7 @@ classifiers = [
 ]
 dependencies = [
     "numpy>=2.0.2",
+    "polars>=1.32.3",
 ]
 
 [project.urls]
@@ -70,7 +71,7 @@ line-length = 120
 fix = true
 
 [tool.ruff.lint]
-exclude = ["**/capex_project.py", "**/model.py", "**/npa_project.py", "**/params.py", "**/utils.py", "**/web_params.py", "skeleton.pyi"] # TEMPORARY!!!!
+exclude = ["**/model.py", "**/npa_project.py", "**/params.py", "**/utils.py", "**/web_params.py", "skeleton.pyi"] # TEMPORARY!!!!
 select = [
     # flake8-2020
     "YTT",

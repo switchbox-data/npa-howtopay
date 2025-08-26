@@ -8,6 +8,9 @@ import polars as pl
 # num_converts: int
 # pipe_value_per_user: float
 # pipe_decomm_cost_per_user: float
+# peak_kw_winter_headroom: float
+# peak_kw_summer_headroom: float
+# aircon_percent_adoption_pre_npa: float
 
 # note: could represent scattershot electrification as a row with pipe_value_per_user and pipe_decomm_cost_per_user set to 0
 
