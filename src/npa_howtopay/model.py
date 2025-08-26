@@ -182,6 +182,7 @@ if __name__ == "__main__":
                 peak_kw_winter_headroom_per_project=10.0,
                 peak_kw_summer_headroom_per_project=10.0,
                 aircon_percent_adoption_pre_npa=0.8,
+                pipe_decomm_cost_inflation_rate=input_params.shared.cost_inflation_rate,
             ),
             npa.generate_scattershot_electrification_projects(
                 start_year=scenario_params.start_year,
