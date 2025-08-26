@@ -55,6 +55,7 @@ class SharedParams:
 
 @define
 class InputParams:
+    year: int
     gas: GasParams
     electric: ElectricParams
     shared: SharedParams

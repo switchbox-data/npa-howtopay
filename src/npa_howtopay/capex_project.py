@@ -1,11 +1,35 @@
 import numpy as np
 import polars as pl
+from attrs import define, field, validators
+from npa_project import (
+    compute_npa_converts_from_df,
+    compute_npa_pipe_cost_avoided_from_df,
+    compute_peak_kw_increase_from_df,
+)
 
 ## All dataframes used by functions in this class will have the following columns:
 # project_year: int
+# project_type: str # "synthetic_initial", "misc", "pipeline", "grid_upgrade", "npa"
 # original_cost: float
 # depreciation_lifetime: int
 ## (someday)depreciation_schedule: str # "straight line" or "accelerated"
+
+
+@define
+class CapexProject:
+    project_year: int = field()
+    project_type: str = field(
+        validator=validators.in_(["synthetic_initial", "misc", "pipeline", "grid_upgrade", "npa"])
+    )
+    original_cost: float = field(validator=validators.ge(0.0))
+    depreciation_lifetime: int = field(validator=validators.ge(1))
+
+    def to_df(self) -> pl.DataFrame:
+        return pl.DataFrame({
+            "project_year": [self.project_year],
+            "original_cost": [self.original_cost],
+            "depreciation_lifetime": [self.depreciation_lifetime],
+        })
 
 
 # functions for generating dataframe rows for capex projects
@@ -16,6 +40,7 @@ def get_synthetic_initial_capex_projects(
     est_original_cost_per_year = initial_ratebase / total_weight
     return pl.DataFrame({
         "project_year": range(start_year - depreciation_lifetime + 1, start_year + 1),
+        "project_type": ["synthetic_initial"] * depreciation_lifetime,
         "original_cost": est_original_cost_per_year,
         "depreciation_lifetime": depreciation_lifetime,
     })
@@ -27,11 +52,12 @@ def get_non_lpp_gas_capex_projects(
     baseline_non_lpp_gas_ratebase_growth: float,
     depreciation_lifetime: int,
 ) -> pl.DataFrame:
-    return pl.DataFrame({
-        "project_year": year,
-        "original_cost": current_ratebase * baseline_non_lpp_gas_ratebase_growth,
-        "depreciation_lifetime": depreciation_lifetime,
-    })
+    return CapexProject(
+        project_year=year,
+        project_type="misc",
+        original_cost=current_ratebase * baseline_non_lpp_gas_ratebase_growth,
+        depreciation_lifetime=depreciation_lifetime,
+    ).to_df()
 
 
 def get_lpp_gas_capex_projects(
@@ -55,17 +81,18 @@ def get_lpp_gas_capex_projects(
       - capex project columns
     """
     assert all(npas_this_year["year"] == year)  # noqa: S101
-    npa_pipe_costs_avoided = npas_this_year.select(pl.col("pipe_value_per_user") * pl.col("num_converts")).sum().item()
+    npa_pipe_costs_avoided = compute_npa_pipe_cost_avoided_from_df(year, npas_this_year)
     bau_pipe_replacement_costs = (
         gas_bau_lpp_costs_per_year.filter(pl.col("year") == year).select(pl.col("cost")).sum().item()
     )
     remaining_pipe_replacement_cost = np.maximum(0, bau_pipe_replacement_costs - npa_pipe_costs_avoided)
     if remaining_pipe_replacement_cost > 0:
-        return pl.DataFrame({
-            "project_year": year,
-            "original_cost": remaining_pipe_replacement_cost,
-            "depreciation_lifetime": depreciation_lifetime,
-        })
+        return CapexProject(
+            project_year=year,
+            project_type="pipeline",
+            original_cost=remaining_pipe_replacement_cost,
+            depreciation_lifetime=depreciation_lifetime,
+        ).to_df()
     else:
         return pl.DataFrame()
 
@@ -76,11 +103,12 @@ def get_non_npa_electric_capex_projects(
     baseline_electric_ratebase_growth: float,
     depreciation_lifetime: int,
 ) -> pl.DataFrame:
-    return pl.DataFrame({
-        "project_year": year,
-        "original_cost": current_ratebase * baseline_electric_ratebase_growth,
-        "depreciation_lifetime": depreciation_lifetime,
-    })
+    return CapexProject(
+        project_year=year,
+        project_type="misc",
+        original_cost=current_ratebase * baseline_electric_ratebase_growth,
+        depreciation_lifetime=depreciation_lifetime,
+    ).to_df()
 
 
 def get_grid_upgrade_capex_projects(
@@ -92,28 +120,14 @@ def get_grid_upgrade_capex_projects(
     grid_upgrade_depreciation_lifetime: int,
 ) -> pl.DataFrame:
     assert all(npas_this_year["year"] == year)  # noqa: S101
-    peak_kw_increase = (
-        npas_this_year.select(
-            pl.max_horizontal(
-                pl.max_horizontal(
-                    pl.col("num_converts") * pl.lit(peak_hp_kw) - pl.col("peak_kw_winter_headroom"), pl.lit(0)
-                ),
-                pl.max_horizontal(
-                    pl.col("num_converts") * (1 - pl.col("aircon_percent_adoption_pre_npa")) * pl.lit(peak_aircon_kw)
-                    - pl.col("peak_kw_summer_headroom"),
-                    pl.lit(0),
-                ),
-            )
-        )
-        .sum()
-        .item()
-    )
+    peak_kw_increase = compute_peak_kw_increase_from_df(year, npas_this_year, peak_hp_kw, peak_aircon_kw)
     if peak_kw_increase > 0:
-        return pl.DataFrame({
-            "project_year": year,
-            "original_cost": peak_kw_increase * distribution_cost_per_peak_kw_increase,
-            "depreciation_lifetime": grid_upgrade_depreciation_lifetime,
-        })
+        return CapexProject(
+            project_year=year,
+            project_type="grid_upgrade",
+            original_cost=peak_kw_increase * distribution_cost_per_peak_kw_increase,
+            depreciation_lifetime=grid_upgrade_depreciation_lifetime,
+        ).to_df()
     else:
         return pl.DataFrame()
 
@@ -122,13 +136,11 @@ def get_npa_capex_projects(
     year: int, npas_this_year: pl.DataFrame, npa_install_cost: float, npa_lifetime: int
 ) -> pl.DataFrame:
     assert all(npas_this_year["year"] == year)  # noqa: S101
-    npa_total_cost = npa_install_cost * npas_this_year.select(pl.col("num_converts")).sum().item()
+    npa_total_cost = npa_install_cost * compute_npa_converts_from_df(year, npas_this_year, cumulative=False)
     if npa_total_cost > 0:
-        return pl.DataFrame({
-            "project_year": year,
-            "original_cost": npa_total_cost,
-            "depreciation_lifetime": npa_lifetime,
-        })
+        return CapexProject(
+            project_year=year, project_type="npa", original_cost=npa_total_cost, depreciation_lifetime=npa_lifetime
+        ).to_df()
     else:
         return pl.DataFrame()
 
