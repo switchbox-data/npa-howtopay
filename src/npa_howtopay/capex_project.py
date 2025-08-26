@@ -40,9 +40,25 @@ def get_lpp_gas_capex_projects(
     npas_this_year: pl.DataFrame,
     depreciation_lifetime: int,
 ) -> pl.DataFrame:
+    """
+    Inputs:
+    - year: int
+    - gas_bau_lpp_costs_per_year: pl.DataFrame
+      - columns: year, cost
+      - year is not required to be unique
+    - npas_this_year: pl.DataFrame
+      - npa columns
+    - depreciation_lifetime: int
+
+    Outputs:
+    - pl.DataFrame
+      - capex project columns
+    """
     assert all(npas_this_year["year"] == year)  # noqa: S101
     npa_pipe_costs_avoided = npas_this_year.select(pl.col("pipe_value_per_user") * pl.col("num_converts")).sum().item()
-    bau_pipe_replacement_costs = gas_bau_lpp_costs_per_year.filter(pl.col("year") == year).sum()
+    bau_pipe_replacement_costs = (
+        gas_bau_lpp_costs_per_year.filter(pl.col("year") == year).select(pl.col("cost")).sum().item()
+    )
     remaining_pipe_replacement_cost = np.maximum(0, bau_pipe_replacement_costs - npa_pipe_costs_avoided)
     if remaining_pipe_replacement_cost > 0:
         return pl.DataFrame({
@@ -118,7 +134,7 @@ def get_npa_capex_projects(
 
 
 # functions for computing things given a dataframe of capex projects
-def compute_ratebase_from_capex_projects(df: pl.DataFrame, year: int) -> float:
+def compute_ratebase_from_capex_projects(year: int, df: pl.DataFrame) -> float:
     df = df.with_columns(
         pl.when(pl.lit(year) < pl.col("project_year"))
         .then(pl.lit(0))
@@ -128,7 +144,7 @@ def compute_ratebase_from_capex_projects(df: pl.DataFrame, year: int) -> float:
     return float(df.select(pl.col("depreciation_fraction") * pl.col("original_cost")).sum().item())
 
 
-def compute_depreciation_expense_from_capex_projects(df: pl.DataFrame, year: int) -> float:
+def compute_depreciation_expense_from_capex_projects(year: int, df: pl.DataFrame) -> float:
     return float(
         df.select(
             pl.when(
