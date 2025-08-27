@@ -15,49 +15,6 @@ def compute_blue_columns(year: int, gas_params: GasParams, shared_params: Shared
     pass  # type: ignore
 
 
-def apply_inflation(initial_year: int, output_year: int, params: InputParams) -> InputParams:
-    assert params.year == initial_year
-    if output_year == initial_year:
-        return params
-    if output_year < initial_year:
-        raise ValueError(
-            f"Cannot apply inflation in reverse, output_year {output_year} is before initial_year {initial_year}"
-        )
-
-    gas_params, electric_params, shared_params = params.gas, params.electric, params.shared
-    inflation_mult = (1 + shared_params.cost_inflation_rate) ** (output_year - initial_year)
-    updated_gas_params = evolve(
-        gas_params,
-        **{
-            x: x * inflation_mult
-            for x in [
-                "gas_generation_cost_per_therm",
-                "pipeline_replacement_cost",
-            ]
-        },
-    )
-    updated_electric_params = evolve(
-        electric_params,
-        **{
-            x: x * inflation_mult
-            for x in [
-                "distribution_cost_per_peak_kw_increase",
-                "electricity_generation_cost_per_kwh",
-            ]
-        },
-    )
-    updated_shared_params = evolve(
-        shared_params,
-        **{
-            x: x * inflation_mult
-            for x in [
-                "npa_install_costs",
-            ]
-        },
-    )
-    return InputParams(gas=updated_gas_params, electric=updated_electric_params, shared=updated_shared_params)
-
-
 def compute_bill_costs(
     df: pl.DataFrame,
     input_params: InputParams,
