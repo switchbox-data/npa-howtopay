@@ -22,6 +22,7 @@ electric:
   distribution_cost_per_peak_kw_increase_init: 550.0
   electric_maintenance_cost_pct: 0.014
   electricity_generation_cost_per_kwh_init: 0.11
+  fixed_cost_pct: 0.05
   grid_upgrade_depreciation_lifetime: 18
   hp_efficiency: 3
   hp_peak_kw: 4.5

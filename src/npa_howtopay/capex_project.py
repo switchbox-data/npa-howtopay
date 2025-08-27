@@ -173,3 +173,20 @@ def compute_depreciation_expense_from_capex_projects(year: int, df: pl.DataFrame
         .sum()
         .item()
     )
+
+
+def compute_maintanence_costs(year: int, df: pl.DataFrame, maintenance_cost_pct: float) -> float:
+    """Compute annual maintenance costs for capital projects.
+
+    Args:
+        year: The year to compute maintenance costs for
+        df: DataFrame containing capital projects with columns:
+            - project_type: str - Type of project (npa or other)
+            - original_cost: float - Original cost of the project
+        maintenance_cost_pct: float - Annual maintenance cost as percentage of original cost
+
+    Returns:
+        float: Total maintenance costs for the year, excluding NPA projects
+    """
+    df = df.filter(pl.col("project_type") != "npa", pl.col("project_year") <= year)
+    return float(df.select(pl.col("original_cost")).sum().item() * maintenance_cost_pct)

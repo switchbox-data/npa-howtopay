@@ -10,6 +10,8 @@ import os
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(CURRENT_DIR, "data")
 
+KWH_PER_THERM = 29.3071
+
 
 @define
 class GasParams:
@@ -92,17 +94,12 @@ class InputParams:
         self.electric.cost_inflation_rate = self.shared.cost_inflation_rate
 
 
-# time series inputs
-# maybe these aren't stored in InputParams but in their own class?
 @define
-class TimeSeriesParams:  # TODO: think through this more
+class TimeSeriesParams:
     npa_projects: pl.DataFrame
-    # gas_ratebase_baseline: pl.Series
-    # electric_ratebase_baseline: pl.Series # I think we dont need these now
     gas_fixed_overhead_costs: pl.DataFrame
     electric_fixed_overhead_costs: pl.DataFrame
     gas_bau_lpp_costs_per_year: pl.DataFrame
-    non_npa_converts_per_year: pl.DataFrame
 
 
 @define
@@ -126,8 +123,13 @@ def _load_params_from_yaml(yaml_path: str) -> InputParams:
 
 def load_scenario_from_yaml(run_name: str, data_dir: str = "data") -> InputParams:
     """Load default parameters for a specific run_name from its YAML file"""
-    yaml_path = f"{data_dir}/{run_name}.yaml"
-    return _load_params_from_yaml(yaml_path)
+    from pathlib import Path
+
+    # Get the package directory
+    package_dir = Path(__file__).parent
+    yaml_path = package_dir / data_dir / f"{run_name}.yaml"
+
+    return _load_params_from_yaml(str(yaml_path))
 
 
 def get_available_runs(data_dir: str = "data") -> list[str]:

@@ -1,5 +1,5 @@
 [project]
-name = "npa-howtopay"
+name = "npa_howtopay"
 version = "0.0.1"
 description = "package for ca_npa_howtopay"
 authors = [{ name = "Switchbox", email = "hello@switch.box" }]
@@ -44,15 +44,18 @@ dev = [
 ]
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
 
-[tool.hatch.build.targets.wheel]
+[tool.setuptools]
+include-package-data = true
 packages = ["npa_howtopay"]
+package-dir = {"" = "src"}
 
-# Include YAML scenario files in the wheel
-[tool.hatch.build.targets.wheel.include]
-"npa_howtopay/data/*.yaml" = "data"
+[tool.setuptools.package-data]
+"npa_howtopay" = [
+    "data/*.yaml"
+]
 
 [tool.mypy]
 files = ["src/npa_howtopay"]
