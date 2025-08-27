@@ -168,7 +168,3 @@ def compute_pipe_decomm_cost_from_df(year: int, df: pl.DataFrame) -> float:
         .sum()
         .item()
     )
-
-
-def compute_npa_as_opex_from_df(year: int, df: pl.DataFrame, npa_install_cost: float) -> float:
-    return npa_install_cost * compute_hp_converts_from_df(year, df, cumulative=False, npa_only=True)
