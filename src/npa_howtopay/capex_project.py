@@ -64,7 +64,7 @@ def get_non_lpp_gas_capex_projects(
 def get_lpp_gas_capex_projects(
     year: int,
     gas_bau_lpp_costs_per_year: pl.DataFrame,
-    npas_this_year: pl.DataFrame,
+    npa_projects: pl.DataFrame,
     depreciation_lifetime: int,
 ) -> pl.DataFrame:
     """
@@ -73,7 +73,7 @@ def get_lpp_gas_capex_projects(
     - gas_bau_lpp_costs_per_year: pl.DataFrame
       - columns: year, cost
       - year is not required to be unique
-    - npas_this_year: pl.DataFrame
+    - npa_projects: pl.DataFrame
       - npa columns
     - depreciation_lifetime: int
 
@@ -81,7 +81,7 @@ def get_lpp_gas_capex_projects(
     - pl.DataFrame
       - capex project columns
     """
-    assert all(npas_this_year["year"] == year)  # noqa: S101
+    npas_this_year = npa_projects.filter(pl.col("project_year") == year)
     npa_pipe_costs_avoided = compute_npa_pipe_cost_avoided_from_df(year, npas_this_year)
     bau_pipe_replacement_costs = (
         gas_bau_lpp_costs_per_year.filter(pl.col("year") == year).select(pl.col("cost")).sum().item()
@@ -114,13 +114,13 @@ def get_non_npa_electric_capex_projects(
 
 def get_grid_upgrade_capex_projects(
     year: int,
-    npas_this_year: pl.DataFrame,
+    npa_projects: pl.DataFrame,
     peak_hp_kw: float,
     peak_aircon_kw: float,
     distribution_cost_per_peak_kw_increase: float,
     grid_upgrade_depreciation_lifetime: int,
 ) -> pl.DataFrame:
-    assert all(npas_this_year["year"] == year)  # noqa: S101
+    npas_this_year = npa_projects.filter(pl.col("project_year") == year)
     peak_kw_increase = compute_peak_kw_increase_from_df(year, npas_this_year, peak_hp_kw, peak_aircon_kw)
     if peak_kw_increase > 0:
         return CapexProject(
@@ -134,9 +134,9 @@ def get_grid_upgrade_capex_projects(
 
 
 def get_npa_capex_projects(
-    year: int, npas_this_year: pl.DataFrame, npa_install_cost: float, npa_lifetime: int
+    year: int, npa_projects: pl.DataFrame, npa_install_cost: float, npa_lifetime: int
 ) -> pl.DataFrame:
-    assert all(npas_this_year["year"] == year)  # noqa: S101
+    npas_this_year = npa_projects.filter(pl.col("project_year") == year)
     npa_total_cost = npa_install_cost * compute_hp_converts_from_df(
         year, npas_this_year, cumulative=False, npa_only=True
     )

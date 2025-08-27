@@ -129,8 +129,6 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, npa_pr
 
     output_df = pl.DataFrame()
 
-    live_params = input_params.copy()
-
     # synthetic initial capex projects
     gas_initial_capex_projects = cp.get_synthetic_initial_capex_projects(
         start_year=input_params.shared.start_year,
@@ -144,11 +142,6 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, npa_pr
     )
 
     for year in range(scenario_params.start_year, scenario_params.end_year):
-        live_params = apply_inflation(live_params.year, year, live_params)  # type: ignore
-
-        # get the npas for this year
-        npas_this_year = npa_projects.filter(pl.col("year") == year)
-
         # gas capex
         gas_capex_projects = pl.concat(
             [
@@ -157,14 +150,14 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, npa_pr
                 cp.get_non_lpp_gas_capex_projects(
                     year=year,
                     current_ratebase=gas_ratebase,
-                    baseline_non_lpp_gas_ratebase_growth=live_params.gas.baseline_non_lpp_ratebase_growth,
-                    depreciation_lifetime=live_params.gas.default_depreciation_lifetime,
+                    baseline_non_lpp_gas_ratebase_growth=input_params.gas.baseline_non_lpp_ratebase_growth,
+                    depreciation_lifetime=input_params.gas.default_depreciation_lifetime,
                 ),
                 cp.get_lpp_gas_capex_projects(
                     year=year,
-                    gas_bau_lpp_costs_per_year=live_params.gas_bau_lpp_costs_per_year,
-                    npas_this_year=npas_this_year,
-                    depreciation_lifetime=live_params.gas.lpp_depreciation_lifetime,
+                    gas_bau_lpp_costs_per_year=input_params.gas_bau_lpp_costs_per_year,
+                    npa_projects=npa_projects,
+                    depreciation_lifetime=input_params.gas.lpp_depreciation_lifetime,
                 ),
             ],
             how="vertical",
@@ -178,16 +171,16 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, npa_pr
                 cp.get_non_npa_electric_capex_projects(
                     year=year,
                     current_ratebase=electric_ratebase,
-                    baseline_electric_ratebase_growth=live_params.electric.baseline_non_npa_ratebase_growth,
-                    depreciation_lifetime=live_params.electric.default_depreciation_lifetime,
+                    baseline_electric_ratebase_growth=input_params.electric.baseline_non_npa_ratebase_growth,
+                    depreciation_lifetime=input_params.electric.default_depreciation_lifetime,
                 ),
                 cp.get_grid_upgrade_capex_projects(
                     year=year,
-                    npas_this_year=npas_this_year,
-                    peak_hp_kw=live_params.electric.hp_peak_kw,
-                    peak_aircon_kw=live_params.electric.aircon_peak_kw,
-                    distribution_cost_per_peak_kw_increase=live_params.electric.distribution_cost_per_peak_kw_increase,
-                    grid_upgrade_depreciation_lifetime=live_params.electric.grid_upgrade_depreciation_lifetime,
+                    npa_projects=npa_projects,
+                    peak_hp_kw=input_params.electric.hp_peak_kw,
+                    peak_aircon_kw=input_params.electric.aircon_peak_kw,
+                    distribution_cost_per_peak_kw_increase=input_params.electric.distribution_cost_per_peak_kw_increase,
+                    grid_upgrade_depreciation_lifetime=input_params.electric.grid_upgrade_depreciation_lifetime,
                 ),
             ],
             how="vertical",
@@ -197,14 +190,14 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, npa_pr
         if scenario_params.capex_opex == "capex":
             npa_opex = 0.0
             npa_capex = cp.get_npa_capex_projects(
-                npas_this_year, year, live_params.shared.npa_install_costs, live_params.shared.npa_lifetime
+                npa_projects, year, input_params.shared.npa_install_costs, input_params.shared.npa_lifetime
             )
             if scenario_params.gas_electric == "gas":
                 gas_capex_projects = gas_capex_projects.pl.concat(npa_capex)
             elif scenario_params.gas_electric == "electric":
                 electric_capex_projects = electric_capex_projects.pl.concat(npa_capex)
         elif scenario_params.capex_opex == "opex":
-            npa_opex = npa.compute_npa_install_costs_from_df(year, npas_this_year, live_params.shared.npa_install_costs)
+            npa_opex = npa.compute_npa_install_costs_from_df(year, npa_projects, input_params.shared.npa_install_costs)
 
         gas_ratebase = cp.compute_ratebase_from_capex_projects(year, gas_capex_projects)
         electric_ratebase = cp.compute_ratebase_from_capex_projects(year, electric_capex_projects)
