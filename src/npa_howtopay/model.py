@@ -4,6 +4,8 @@ import npa_project as npa
 import capex_project as cp
 from attrs import evolve
 
+KWH_PER_THERM = 29.307107
+
 
 def compute_blue_columns(year: int, gas_params: GasParams, shared_params: SharedParams) -> pl.DataFrame:
     # TODO: implement this
@@ -54,6 +56,68 @@ def apply_inflation(initial_year: int, output_year: int, params: InputParams) ->
         },
     )
     return InputParams(gas=updated_gas_params, electric=updated_electric_params, shared=updated_shared_params)
+
+
+def compute_bill_costs(
+    df: pl.DataFrame, discount_rate: float, input_params: InputParams, scenario_params: ScenarioParams
+) -> pl.DataFrame:
+    start_year = df.select(pl.col("year")).min().item()
+    return df.with_columns(
+        (pl.col("gas_revenue_requirement") / ((pl.col("year") - start_year).pow(discount_rate))).alias(
+            "gas_inflation_adjusted_revenue_requirement"
+        ),
+        (pl.col("electric_revenue_requirement") / ((pl.col("year") - start_year).pow(discount_rate))).alias(
+            "electric_inflation_adjusted_revenue_requirement"
+        ),
+        (pl.col("gas_revenue_requirement") + pl.col("electric_revenue_requirement")).alias("total_revenue_requirement"),
+        (
+            pl.col("gas_inflation_adjusted_revenue_requirement")
+            + pl.col("electric_inflation_adjusted_revenue_requirement")
+        ).alias("total_inflation_adjusted_revenue_requirement"),
+        (pl.col("gas_inflation_adjusted_revenue_requirement") / pl.col("num_users")).alias("gas_bill_per_user"),
+        (pl.col("gas_inflation_adjusted_revenue_requirement") / pl.col("num_gas_users")).alias(
+            "nonconverts_gas_bill_per_user"
+        ),
+        (pl.lit(0)).alias("converts_gas_bill_per_user"),
+        (pl.col("electric_inflation_adjusted_revenue_requirement") / pl.col("num_users")).alias(
+            "electric_bill_per_user"
+        ),
+        # =who_pays_electric_fixed_cost_pct*electric_inflation_adjusted_revenue_requirement/electric_num_users
+        (
+            pl.lit(scenario_params.electric_fixed_cost_pct)
+            * pl.col("electric_inflation_adjusted_revenue_requirement")
+            / pl.col("num_users")
+        ).alias("electric_fixed_cost_per_user"),
+        # =(1 - who_pays_electric_fixed_cost_pct)*electric_inflation_adjusted_revenue_requirement / electric_total_usage
+        (
+            (
+                pl.lit(1 - scenario_params.electric_fixed_cost_pct)
+                * pl.col("electric_inflation_adjusted_revenue_requirement")
+            )
+            / pl.col("electric_total_usage")
+        ).alias("electric_variable_cost_per_kwh"),
+        # =electric_per_user_fixed_bill + electric_charge_per_kwh*(per_user_electric_need+per_user_heating_need * KWH_PER_THERM / hp_efficiency)
+        (
+            pl.col("electric_fixed_cost_per_user")
+            + pl.col("electric_variable_cost_per_kwh")
+            * (
+                input_params.electric.per_user_electric_need_kwh
+                + input_params.gas.per_user_heating_need_therms
+                * KWH_PER_THERM
+                / pl.lit(input_params.electric.hp_efficiency)
+            )
+        ).alias("converts_electric_bill_per_user"),
+        (
+            pl.col("electric_fixed_cost_per_user")
+            + pl.col("electric_variable_cost_per_kwh") * input_params.electric.per_user_electric_need_kwh
+        ).alias("nonconverts_electric_bill_per_user"),
+        (pl.col("converts_gas_bill_per_user") + pl.col("converts_electric_bill_per_user")).alias(
+            "converts_total_bill_per_user"
+        ),
+        (pl.col("nonconverts_gas_bill_per_user") + pl.col("nonconverts_electric_bill_per_user")).alias(
+            "nonconverts_total_bill_per_user"
+        ),
+    )
 
 
 def run_model(scenario_params: ScenarioParams, input_params: InputParams, npa_projects: pl.DataFrame) -> pl.DataFrame:
@@ -131,6 +195,7 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, npa_pr
 
         # npa capex
         if scenario_params.capex_opex == "capex":
+            npa_opex = 0.0
             npa_capex = cp.get_npa_capex_projects(
                 npas_this_year, year, live_params.shared.npa_install_costs, live_params.shared.npa_lifetime
             )
@@ -138,6 +203,8 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, npa_pr
                 gas_capex_projects = gas_capex_projects.pl.concat(npa_capex)
             elif scenario_params.gas_electric == "electric":
                 electric_capex_projects = electric_capex_projects.pl.concat(npa_capex)
+        elif scenario_params.capex_opex == "opex":
+            npa_opex = npa.compute_npa_install_costs_from_df(year, npas_this_year, live_params.shared.npa_install_costs)
 
         gas_ratebase = cp.compute_ratebase_from_capex_projects(year, gas_capex_projects)
         electric_ratebase = cp.compute_ratebase_from_capex_projects(year, electric_capex_projects)

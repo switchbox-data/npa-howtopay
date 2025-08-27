@@ -78,6 +78,7 @@ class TimeSeriesParams:  # TODO: think through this more
 class ScenarioParams:
     gas_electric: Literal["gas", "electric"] = field(validator=validators.in_(["gas", "electric"]))
     capex_opex: Literal["capex", "opex"] = field(validator=validators.in_(["capex", "opex"]))
+    electric_fixed_cost_pct: float = field(validator=validators.and_(validators.ge(0.0), validator=validators.le(1.0)))
     end_year: int
     start_year: int
 

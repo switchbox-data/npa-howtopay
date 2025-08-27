@@ -124,6 +124,11 @@ def compute_hp_converts_from_df(year: int, df: pl.DataFrame, cumulative: bool = 
     return df.filter(year_filter & npa_filter).select(pl.col("num_converts")).sum().item()
 
 
+def compute_npa_install_costs_from_df(year: int, df: pl.DataFrame, npa_install_cost: float) -> float:
+    # TODO: should this also include pipe_decomm_costs?
+    return npa_install_cost * compute_hp_converts_from_df(year, df, cumulative=False, npa_only=True)
+
+
 def compute_npa_pipe_cost_avoided_from_df(year: int, df: pl.DataFrame) -> float:
     return df.filter(pl.col("year") == year).select(pl.col("pipe_value_per_user") * pl.col("num_converts")).sum().item()
 
