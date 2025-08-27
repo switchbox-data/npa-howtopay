@@ -188,5 +188,5 @@ def compute_maintanence_costs(year: int, df: pl.DataFrame, maintenance_cost_pct:
     Returns:
         float: Total maintenance costs for the year, excluding NPA projects
     """
-    df = df.filter(pl.col("project_type") != "npa")
-    return float(df.select(pl.col("original_cost") * maintenance_cost_pct).sum().item())
+    df = df.filter(pl.col("project_type") != "npa", pl.col("project_year") <= year)
+    return float(df.select(pl.col("original_cost")).sum().item() * maintenance_cost_pct)
