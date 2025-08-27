@@ -123,8 +123,13 @@ def _load_params_from_yaml(yaml_path: str) -> InputParams:
 
 def load_scenario_from_yaml(run_name: str, data_dir: str = "data") -> InputParams:
     """Load default parameters for a specific run_name from its YAML file"""
-    yaml_path = f"{data_dir}/{run_name}.yaml"
-    return _load_params_from_yaml(yaml_path)
+    from pathlib import Path
+
+    # Get the package directory
+    package_dir = Path(__file__).parent
+    yaml_path = package_dir / data_dir / f"{run_name}.yaml"
+
+    return _load_params_from_yaml(str(yaml_path))
 
 
 def get_available_runs(data_dir: str = "data") -> list[str]:
