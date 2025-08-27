@@ -57,23 +57,17 @@ class SharedParams:
 
 @define
 class InputParams:
-    year: int
     gas: GasParams
     electric: ElectricParams
     shared: SharedParams
 
 
-# time series inputs
-# maybe these aren't stored in InputParams but in their own class?
 @define
-class TimeSeriesParams:  # TODO: think through this more
+class TimeSeriesParams:
     npa_projects: pl.DataFrame
-    # gas_ratebase_baseline: pl.Series
-    # electric_ratebase_baseline: pl.Series # I think we dont need these now
     gas_fixed_overhead_costs: pl.DataFrame
     electric_fixed_overhead_costs: pl.DataFrame
     gas_bau_lpp_costs_per_year: pl.DataFrame
-    non_npa_converts_per_year: pl.DataFrame
 
 
 @define
