@@ -1,5 +1,5 @@
 from attrs import define
-from npa_project import NpaProject
+from .npa_project import NpaProject
 
 
 @define
