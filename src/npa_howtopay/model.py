@@ -249,7 +249,7 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, ts_par
             gas_bau_lpp_costs_per_year=ts_params.gas_bau_lpp_costs_per_year.filter(pl.col("year") == year),
             npa_opex=0.0
             if scenario_params.capex_opex != "opex"
-            else cp.compute_npa_as_opex_from_df(year, npas_this_year, live_params.shared.npa_install_costs),
+            else npa.compute_npa_as_opex_from_df(year, ts_params.npa_projects, live_params.shared.npa_install_costs),
         )
 
         # Calculate intermediate columns for both gas and electric
