@@ -59,39 +59,41 @@ def apply_inflation(initial_year: int, output_year: int, params: InputParams) ->
 
 
 def compute_bill_costs(
-    df: pl.DataFrame, discount_rate: float, input_params: InputParams, scenario_params: ScenarioParams
+    df: pl.DataFrame,
+    input_params: InputParams,
 ) -> pl.DataFrame:
     start_year = df.select(pl.col("year")).min().item()
     return df.with_columns(
-        (pl.col("gas_revenue_requirement") / ((pl.col("year") - start_year).pow(discount_rate))).alias(
-            "gas_inflation_adjusted_revenue_requirement"
-        ),
-        (pl.col("electric_revenue_requirement") / ((pl.col("year") - start_year).pow(discount_rate))).alias(
-            "electric_inflation_adjusted_revenue_requirement"
-        ),
+        (
+            pl.col("gas_revenue_requirement") / ((pl.col("year") - start_year).pow(input_params.shared.discount_rate))
+        ).alias("gas_inflation_adjusted_revenue_requirement"),
+        (
+            pl.col("electric_revenue_requirement")
+            / ((pl.col("year") - start_year).pow(input_params.shared.discount_rate))
+        ).alias("electric_inflation_adjusted_revenue_requirement"),
         (pl.col("gas_revenue_requirement") + pl.col("electric_revenue_requirement")).alias("total_revenue_requirement"),
         (
             pl.col("gas_inflation_adjusted_revenue_requirement")
             + pl.col("electric_inflation_adjusted_revenue_requirement")
         ).alias("total_inflation_adjusted_revenue_requirement"),
-        (pl.col("gas_inflation_adjusted_revenue_requirement") / pl.col("num_users")).alias("gas_bill_per_user"),
-        (pl.col("gas_inflation_adjusted_revenue_requirement") / pl.col("num_gas_users")).alias(
+        (pl.col("gas_inflation_adjusted_revenue_requirement") / pl.col("gas_num_users")).alias("gas_bill_per_user"),
+        (pl.col("gas_inflation_adjusted_revenue_requirement") / pl.col("gas_num_users")).alias(
             "nonconverts_gas_bill_per_user"
         ),
         (pl.lit(0)).alias("converts_gas_bill_per_user"),
-        (pl.col("electric_inflation_adjusted_revenue_requirement") / pl.col("num_users")).alias(
+        (pl.col("electric_inflation_adjusted_revenue_requirement") / pl.col("electric_num_users")).alias(
             "electric_bill_per_user"
         ),
         # =who_pays_electric_fixed_cost_pct*electric_inflation_adjusted_revenue_requirement/electric_num_users
         (
-            pl.lit(scenario_params.electric_fixed_cost_pct)
+            pl.lit(input_params.electric.fixed_cost_pct)
             * pl.col("electric_inflation_adjusted_revenue_requirement")
-            / pl.col("num_users")
+            / pl.col("electric_num_users")
         ).alias("electric_fixed_cost_per_user"),
         # =(1 - who_pays_electric_fixed_cost_pct)*electric_inflation_adjusted_revenue_requirement / electric_total_usage
         (
             (
-                pl.lit(1 - scenario_params.electric_fixed_cost_pct)
+                pl.lit(1 - input_params.electric.fixed_cost_pct)
                 * pl.col("electric_inflation_adjusted_revenue_requirement")
             )
             / pl.col("electric_total_usage")
@@ -217,7 +219,8 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, npa_pr
 
         output_df = pl.concat([output_df, year_output], how="vertical")
 
-    output_df = compute_bill_costs(output_df, input_params.shared.discount_rate)  # appends new columns to output_df
+    # appends new columns to output_df
+    output_df = pl.concat([output_df, compute_bill_costs(output_df, input_params)], how="vertical")
 
     return output_df
 

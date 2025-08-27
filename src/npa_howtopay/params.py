@@ -46,6 +46,7 @@ class ElectricParams:
     distribution_cost_per_peak_kw_increase: float
     electric_maintenance_cost_pct: float
     electricity_generation_cost_per_kwh_init: float
+    fixed_cost_pct: float = field(validator=validators.and_(validators.ge(0.0), validator=validators.le(1.0)))
     grid_upgrade_depreciation_lifetime: int
     hp_efficiency: float
     hp_peak_kw: float
@@ -113,7 +114,6 @@ class TimeSeriesParams:  # TODO: think through this more
 class ScenarioParams:
     gas_electric: Literal["gas", "electric"] = field(validator=validators.in_(["gas", "electric"]))
     capex_opex: Literal["capex", "opex"] = field(validator=validators.in_(["capex", "opex"]))
-    electric_fixed_cost_pct: float = field(validator=validators.and_(validators.ge(0.0), validator=validators.le(1.0)))
     end_year: int
     start_year: int
 
