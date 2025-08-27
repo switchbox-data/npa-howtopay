@@ -2,7 +2,7 @@ import numpy as np
 import polars as pl
 from attrs import define, field, validators
 from npa_project import (
-    compute_npa_converts_from_df,
+    compute_hp_converts_from_df,
     compute_npa_pipe_cost_avoided_from_df,
     compute_peak_kw_increase_from_df,
 )
@@ -136,7 +136,9 @@ def get_npa_capex_projects(
     year: int, npas_this_year: pl.DataFrame, npa_install_cost: float, npa_lifetime: int
 ) -> pl.DataFrame:
     assert all(npas_this_year["year"] == year)  # noqa: S101
-    npa_total_cost = npa_install_cost * compute_npa_converts_from_df(year, npas_this_year, cumulative=False)
+    npa_total_cost = npa_install_cost * compute_hp_converts_from_df(
+        year, npas_this_year, cumulative=False, npa_only=True
+    )
     if npa_total_cost > 0:
         return CapexProject(
             project_year=year, project_type="npa", original_cost=npa_total_cost, depreciation_lifetime=npa_lifetime

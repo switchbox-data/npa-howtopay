@@ -118,14 +118,10 @@ def generate_scattershot_electrification_projects(
     })
 
 
-def compute_total_converts_from_df(year: int, df: pl.DataFrame, cumulative: bool = False) -> int:
+def compute_hp_converts_from_df(year: int, df: pl.DataFrame, cumulative: bool = False, npa_only: bool = False) -> int:
     year_filter = pl.col("year") <= pl.lit(year) if cumulative else pl.col("year") == pl.lit(year)
-    return df.filter(year_filter).select(pl.col("num_converts")).sum().item()
-
-
-def compute_npa_converts_from_df(year: int, df: pl.DataFrame, cumulative: bool = False) -> int:
-    year_filter = (pl.col("year") <= pl.lit(year)) if cumulative else (pl.col("year") == pl.lit(year))
-    return df.filter(year_filter & ~pl.col("is_scattershot")).select(pl.col("num_converts")).sum().item()
+    npa_filter = ~pl.col("is_scattershot") if npa_only else pl.lit(True)
+    return df.filter(year_filter & npa_filter).select(pl.col("num_converts")).sum().item()
 
 
 def compute_npa_pipe_cost_avoided_from_df(year: int, df: pl.DataFrame) -> float:
