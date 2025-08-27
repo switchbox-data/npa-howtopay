@@ -117,6 +117,7 @@ def test_get_grid_upgrade_capex_projects(npa_projects):
     )
     ref_df = pl.DataFrame({
         "project_year": [2025],
+        "project_type": ["grid_upgrade"],
         "original_cost": [34000],  # three projects increase peak_kw by 14, 11, 9
         "depreciation_lifetime": [30],
     })
@@ -127,6 +128,7 @@ def test_get_npa_capex_projects(npa_projects):
     df = get_npa_capex_projects(year=2025, npa_projects=npa_projects, npa_install_cost=1000, npa_lifetime=10)
     ref_df = pl.DataFrame({
         "project_year": [2025],
+        "project_type": ["npa"],
         "original_cost": [35000],
         "depreciation_lifetime": [10],
     })
