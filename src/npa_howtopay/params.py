@@ -15,16 +15,25 @@ DATA_DIR = os.path.join(CURRENT_DIR, "data")
 class GasParams:
     baseline_non_lpp_ratebase_growth: float
     default_depreciation_lifetime: int
-    gas_generation_cost_per_therm: float
+    gas_generation_cost_per_therm_init: float
     lpp_depreciation_lifetime: int
     non_lpp_depreciation_lifetime: int
     num_users_init: int
     per_user_heating_need_therms: float
     pipeline_maintenance_cost_pct: float
-    pipeline_replacement_cost: float
+    pipeline_replacement_cost_init: float
     pipeline_replacement_lifetime: float
     ratebase_init: float
     ror: float
+    # passed down from SharedParams
+    start_year: int = field(init=False)
+    cost_inflation_rate: float = field(init=False)
+
+    def gas_generation_cost_per_therm(self, year: int) -> float:
+        return self.gas_generation_cost_per_therm_init * (1 + self.cost_inflation_rate) ** (year - self.start_year)
+
+    def pipeline_replacement_cost(self, year: int) -> float:
+        return self.pipeline_replacement_cost_init * (1 + self.cost_inflation_rate) ** (year - self.start_year)
 
 
 @define
@@ -32,9 +41,10 @@ class ElectricParams:
     aircon_peak_kw: float
     baseline_non_npa_ratebase_growth: float
     default_depreciation_lifetime: int
-    distribution_cost_per_peak_kw_increase: float
+    distribution_cost_per_peak_kw_increase_init: float
     electric_maintenance_cost_pct: float
-    electricity_generation_cost_per_kwh: float
+    electricity_generation_cost_per_kwh_init: float
+    fixed_cost_pct: float = field(validator=validators.and_(validators.ge(0.0), validators.le(1.0)))
     grid_upgrade_depreciation_lifetime: int
     hp_efficiency: float
     hp_peak_kw: float
@@ -42,23 +52,44 @@ class ElectricParams:
     per_user_electric_need_kwh: float
     ratebase_init: float
     ror: float
+    # passed down from SharedParams
+    start_year: int = field(init=False)
+    cost_inflation_rate: float = field(init=False)
+
+    def electricity_generation_cost_per_kwh(self, year: int) -> float:
+        return self.electricity_generation_cost_per_kwh_init * (1 + self.cost_inflation_rate) ** (
+            year - self.start_year
+        )
+
+    def distribution_cost_per_peak_kw_increase(self, year: int) -> float:
+        return self.distribution_cost_per_peak_kw_increase_init * (1 + self.cost_inflation_rate) ** (
+            year - self.start_year
+        )
 
 
 @define
 class SharedParams:
     cost_inflation_rate: float
     discount_rate: float
-    npa_install_costs: float
+    npa_install_costs_init: float
     npa_lifetime: float
     start_year: int
+
+    def npa_install_costs(self, year: int) -> float:
+        return self.npa_install_costs_init * (1 + self.cost_inflation_rate) ** (year - self.start_year)
 
 
 @define
 class InputParams:
-    year: int
     gas: GasParams
     electric: ElectricParams
     shared: SharedParams
+
+    def __attrs_post_init__(self) -> None:
+        self.gas.start_year = self.shared.start_year
+        self.electric.start_year = self.shared.start_year
+        self.gas.cost_inflation_rate = self.shared.cost_inflation_rate
+        self.electric.cost_inflation_rate = self.shared.cost_inflation_rate
 
 
 # time series inputs
