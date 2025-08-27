@@ -121,7 +121,7 @@ def generate_scattershot_electrification_projects(
 def compute_hp_converts_from_df(year: int, df: pl.DataFrame, cumulative: bool = False, npa_only: bool = False) -> int:
     year_filter = pl.col("year") <= pl.lit(year) if cumulative else pl.col("year") == pl.lit(year)
     npa_filter = ~pl.col("is_scattershot") if npa_only else pl.lit(True)
-    return df.filter(year_filter & npa_filter).select(pl.col("num_converts")).sum().item()
+    return int(df.filter(year_filter & npa_filter).select(pl.col("num_converts")).sum().item())
 
 
 def compute_npa_install_costs_from_df(year: int, df: pl.DataFrame, npa_install_cost: float) -> float:
@@ -130,11 +130,13 @@ def compute_npa_install_costs_from_df(year: int, df: pl.DataFrame, npa_install_c
 
 
 def compute_npa_pipe_cost_avoided_from_df(year: int, df: pl.DataFrame) -> float:
-    return df.filter(pl.col("year") == year).select(pl.col("pipe_value_per_user") * pl.col("num_converts")).sum().item()
+    return float(
+        df.filter(pl.col("year") == year).select(pl.col("pipe_value_per_user") * pl.col("num_converts")).sum().item()
+    )
 
 
 def compute_peak_kw_increase_from_df(year: int, df: pl.DataFrame, peak_hp_kw: float, peak_aircon_kw: float) -> float:
-    return (
+    return float(
         df.filter(pl.col("year") == year)
         .select(
             pl.max_horizontal(
@@ -154,11 +156,13 @@ def compute_peak_kw_increase_from_df(year: int, df: pl.DataFrame, peak_hp_kw: fl
 
 
 def compute_exiting_pipe_value_from_df(year: int, df: pl.DataFrame) -> float:
-    return df.filter(pl.col("year") == year).select(pl.col("pipe_value_per_user") * pl.col("num_converts")).sum().item()
+    return float(
+        df.filter(pl.col("year") == year).select(pl.col("pipe_value_per_user") * pl.col("num_converts")).sum().item()
+    )
 
 
-def compute_pipe_decomm_cost_from_df(year: int, df: pl.DataFrame) -> pl.DataFrame:
-    return (
+def compute_pipe_decomm_cost_from_df(year: int, df: pl.DataFrame) -> float:
+    return float(
         df.filter(pl.col("year") == year)
         .select(pl.col("pipe_decomm_cost_per_user") * pl.col("num_converts"))
         .sum()

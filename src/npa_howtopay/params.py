@@ -29,11 +29,9 @@ class GasParams:
     start_year: int = field(init=False)
     cost_inflation_rate: float = field(init=False)
 
-    @property
     def gas_generation_cost_per_therm(self, year: int) -> float:
         return self.gas_generation_cost_per_therm_init * (1 + self.cost_inflation_rate) ** (year - self.start_year)
 
-    @property
     def pipeline_replacement_cost(self, year: int) -> float:
         return self.pipeline_replacement_cost_init * (1 + self.cost_inflation_rate) ** (year - self.start_year)
 
@@ -43,10 +41,10 @@ class ElectricParams:
     aircon_peak_kw: float
     baseline_non_npa_ratebase_growth: float
     default_depreciation_lifetime: int
-    distribution_cost_per_peak_kw_increase: float
+    distribution_cost_per_peak_kw_increase_init: float
     electric_maintenance_cost_pct: float
     electricity_generation_cost_per_kwh_init: float
-    fixed_cost_pct: float = field(validator=validators.and_(validators.ge(0.0), validator=validators.le(1.0)))
+    fixed_cost_pct: float = field(validator=validators.and_(validators.ge(0.0), validators.le(1.0)))
     grid_upgrade_depreciation_lifetime: int
     hp_efficiency: float
     hp_peak_kw: float
@@ -58,13 +56,11 @@ class ElectricParams:
     start_year: int = field(init=False)
     cost_inflation_rate: float = field(init=False)
 
-    @property
     def electricity_generation_cost_per_kwh(self, year: int) -> float:
         return self.electricity_generation_cost_per_kwh_init * (1 + self.cost_inflation_rate) ** (
             year - self.start_year
         )
 
-    @property
     def distribution_cost_per_peak_kw_increase(self, year: int) -> float:
         return self.distribution_cost_per_peak_kw_increase_init * (1 + self.cost_inflation_rate) ** (
             year - self.start_year
@@ -79,7 +75,6 @@ class SharedParams:
     npa_lifetime: float
     start_year: int
 
-    @property
     def npa_install_costs(self, year: int) -> float:
         return self.npa_install_costs_init * (1 + self.cost_inflation_rate) ** (year - self.start_year)
 
@@ -90,7 +85,7 @@ class InputParams:
     electric: ElectricParams
     shared: SharedParams
 
-    def __attrs_post_init__(self):
+    def __attrs_post_init__(self) -> None:
         self.gas.start_year = self.shared.start_year
         self.electric.start_year = self.shared.start_year
         self.gas.cost_inflation_rate = self.shared.cost_inflation_rate

@@ -1,7 +1,8 @@
 import numpy as np
 import polars as pl
 from attrs import define, field, validators
-from npa_project import (
+
+from .npa_project import (
     compute_hp_converts_from_df,
     compute_npa_pipe_cost_avoided_from_df,
     compute_peak_kw_increase_from_df,
