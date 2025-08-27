@@ -14,8 +14,6 @@ from attrs import evolve
 from dataclasses import dataclass
 from typing import Literal
 
-KWH_PER_THERM = 29.307107
-
 
 @dataclass
 class YearContext:
@@ -28,23 +26,24 @@ class YearContext:
     electric_depreciation_expense: float
     gas_maintenance_cost: float
     electric_maintenance_cost: float
-    npa_opex: float
+    gas_npa_opex: float
+    electric_npa_opex: float
 
 
 def compute_intermediate_cols_gas(
     context: YearContext, input_params: InputParams, ts_params: TimeSeriesParams
 ) -> pl.DataFrame:
     gas_fixed_overhead_costs = (
-        ts_params.gas_fixed_overhead_costs.filter(pl.col("year") == context.year).select(pl.col("cost")).item()
+        ts_params.gas_fixed_overhead_costs.filter(pl.col("year") == context.year).select(pl.col("cost")).sum().item()
     )
     gas_num_users = input_params.gas.num_users_init - npa.compute_hp_converts_from_df(
         context.year, ts_params.npa_projects, cumulative=True, npa_only=False
     )
     total_usage = gas_num_users * input_params.gas.per_user_heating_need_therms
-    costs_volumetric = total_usage * input_params.gas.gas_generation_cost_per_therm
-    costs_fixed = gas_fixed_overhead_costs + context.gas_maintenance_cost + context.npa_opex
-    total_costs = costs_fixed + costs_volumetric
-    revenue_requirement = context.gas_ratebase * input_params.gas.ror + total_costs + context.gas_depreciation_expense
+    costs_volumetric = total_usage * input_params.gas.gas_generation_cost_per_therm(context.year)
+    costs_fixed = gas_fixed_overhead_costs + context.gas_maintenance_cost + context.gas_npa_opex
+    opex_costs = costs_fixed + costs_volumetric
+    revenue_requirement = context.gas_ratebase * input_params.gas.ror + opex_costs + context.gas_depreciation_expense
 
     return pl.DataFrame({
         "year": [context.year],
@@ -52,7 +51,7 @@ def compute_intermediate_cols_gas(
         "total_gas_usage_therms": [total_usage],
         "gas_costs_volumetric": [costs_volumetric],
         "gas_costs_fixed": [costs_fixed],
-        "gas_total_costs": [total_costs],
+        "gas_opex_costs": [opex_costs],
         "gas_revenue_requirement": [revenue_requirement],
     })
 
@@ -61,7 +60,10 @@ def compute_intermediate_cols_electric(
     context: YearContext, input_params: InputParams, ts_params: TimeSeriesParams
 ) -> pl.DataFrame:
     electric_fixed_overhead_costs = (
-        ts_params.electric_fixed_overhead_costs.filter(pl.col("year") == context.year).select(pl.col("cost")).item()
+        ts_params.electric_fixed_overhead_costs.filter(pl.col("year") == context.year)
+        .select(pl.col("cost"))
+        .sum()
+        .item()
     )
     total_converts_cumul = npa.compute_hp_converts_from_df(
         context.year, ts_params.npa_projects, cumulative=True, npa_only=False
@@ -73,11 +75,11 @@ def compute_intermediate_cols_electric(
         * KWH_PER_THERM
         / input_params.electric.hp_efficiency
     )
-    costs_volumetric = total_usage * input_params.electric.electricity_generation_cost_per_kwh
-    costs_fixed = electric_fixed_overhead_costs + context.electric_maintenance_cost + context.npa_opex
-    total_costs = costs_fixed + costs_volumetric
+    costs_volumetric = total_usage * input_params.electric.electricity_generation_cost_per_kwh(context.year)
+    costs_fixed = electric_fixed_overhead_costs + context.electric_maintenance_cost + context.electric_npa_opex
+    opex_costs = costs_fixed + costs_volumetric
     revenue_requirement = (
-        context.electric_ratebase * input_params.electric.ror + total_costs + context.electric_depreciation_expense
+        context.electric_ratebase * input_params.electric.ror + opex_costs + context.electric_depreciation_expense
     )
 
     return pl.DataFrame({
@@ -87,7 +89,7 @@ def compute_intermediate_cols_electric(
         "total_electric_usage_kwh": [total_usage],
         "electric_costs_volumetric": [costs_volumetric],
         "electric_costs_fixed": [costs_fixed],
-        "electric_total_costs": [total_costs],
+        "electric_opex_costs": [opex_costs],
         "electric_revenue_requirement": [revenue_requirement],
     })
 
@@ -215,7 +217,9 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, ts_par
                     npa_projects=ts_params.npa_projects,
                     peak_hp_kw=input_params.electric.hp_peak_kw,
                     peak_aircon_kw=input_params.electric.aircon_peak_kw,
-                    distribution_cost_per_peak_kw_increase=input_params.electric.distribution_cost_per_peak_kw_increase,
+                    distribution_cost_per_peak_kw_increase=input_params.electric.distribution_cost_per_peak_kw_increase(
+                        year
+                    ),
                     grid_upgrade_depreciation_lifetime=input_params.electric.grid_upgrade_depreciation_lifetime,
                 ),
             ],
@@ -224,18 +228,31 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, ts_par
 
         # npa capex/opex
         if scenario_params.capex_opex == "capex":
-            npa_opex = 0.0
+            # set npa opex to 0
+            gas_npa_opex = 0.0
+            electric_npa_opex = 0.0
+            # add npa capex
             npa_capex = cp.get_npa_capex_projects(
-                year, npa_projects, input_params.shared.npa_install_costs, input_params.shared.npa_lifetime
+                year,
+                ts_params.npa_projects,
+                input_params.shared.npa_install_costs(year),
+                int(input_params.shared.npa_lifetime),
             )
             if scenario_params.gas_electric == "gas":
-                gas_capex_projects = gas_capex_projects.pl.concat(npa_capex)
+                gas_capex_projects = pl.concat([gas_capex_projects, npa_capex], how="vertical")
             elif scenario_params.gas_electric == "electric":
-                electric_capex_projects = electric_capex_projects.pl.concat(npa_capex)
+                electric_capex_projects = pl.concat([electric_capex_projects, npa_capex], how="vertical")
         elif scenario_params.capex_opex == "opex":
-            npa_opex = npa.compute_npa_install_costs_from_df(
-                year, ts_params.npa_projects, input_params.shared.npa_install_costs
-            )
+            if scenario_params.gas_electric == "gas":
+                gas_npa_opex = npa.compute_npa_install_costs_from_df(
+                    year, ts_params.npa_projects, input_params.shared.npa_install_costs(year)
+                )
+                electric_npa_opex = 0.0
+            elif scenario_params.gas_electric == "electric":
+                gas_npa_opex = 0.0
+                electric_npa_opex = npa.compute_npa_install_costs_from_df(
+                    year, ts_params.npa_projects, input_params.shared.npa_install_costs(year)
+                )
 
         # calculate ratebase
         gas_ratebase = cp.compute_ratebase_from_capex_projects(year, gas_capex_projects)
@@ -264,7 +281,8 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, ts_par
             electric_depreciation_expense=electric_depreciation_expense,
             gas_maintenance_cost=gas_maintanence_costs,
             electric_maintenance_cost=electric_maintanence_costs,
-            npa_opex=npa_opex,
+            gas_npa_opex=gas_npa_opex,
+            electric_npa_opex=electric_npa_opex,
         )
 
         # Calculate intermediate columns for both gas and electric
@@ -302,25 +320,41 @@ def analyze_scenarios(scenario_runs: dict[ScenarioParams, pl.DataFrame]) -> None
 if __name__ == "__main__":
     scenario_params = ScenarioParams(start_year=2025, end_year=2050, gas_electric="gas", capex_opex="capex")
     input_params = load_scenario_from_yaml("sample")
-    ts_params = TimeSeriesParams()
-    #             start_year=scenario_params.start_year,
-    #             end_year=scenario_params.end_year,
-    #             total_num_projects=10,
-    #             num_converts_per_project=5,
-    #             pipe_value_per_user=1000.0,
-    #             pipe_decomm_cost_per_user=100.0,
-    #             peak_kw_winter_headroom_per_project=10.0,
-    #             peak_kw_summer_headroom_per_project=10.0,
-    #             aircon_percent_adoption_pre_npa=0.8,
-    #             pipe_decomm_cost_inflation_rate=input_params.shared.cost_inflation_rate,
-    #         ),
-    #         npa.generate_scattershot_electrification_projects(
-    #             start_year=scenario_params.start_year,
-    #             end_year=scenario_params.end_year,
-    #             total_num_converts=10,
-    #         ),
-    #     ],
-    #     how="vertical",
-    # ).sort("year")
+    ts_params = TimeSeriesParams(
+        npa_projects=pl.concat(
+            [
+                npa.generate_npa_projects(
+                    start_year=scenario_params.start_year,
+                    end_year=scenario_params.end_year,
+                    total_num_projects=10,
+                    num_converts_per_project=5,
+                    pipe_value_per_user=1000.0,
+                    pipe_decomm_cost_per_user=100.0,
+                    peak_kw_winter_headroom_per_project=10.0,
+                    peak_kw_summer_headroom_per_project=10.0,
+                    aircon_percent_adoption_pre_npa=0.8,
+                    pipe_decomm_cost_inflation_rate=input_params.shared.cost_inflation_rate,
+                ),
+                npa.generate_scattershot_electrification_projects(
+                    start_year=scenario_params.start_year,
+                    end_year=scenario_params.end_year,
+                    total_num_converts=10,
+                ),
+            ],
+            how="vertical",
+        ).sort("year"),
+        gas_bau_lpp_costs_per_year=pl.DataFrame({
+            "year": list(range(scenario_params.start_year, scenario_params.end_year + 1)),
+            "cost": [100] * (scenario_params.end_year - scenario_params.start_year + 1),
+        }).sort("year"),
+        electric_fixed_overhead_costs=pl.DataFrame({
+            "year": list(range(scenario_params.start_year, scenario_params.end_year + 1)),
+            "cost": [100] * (scenario_params.end_year - scenario_params.start_year + 1),
+        }).sort("year"),
+        gas_fixed_overhead_costs=pl.DataFrame({
+            "year": list(range(scenario_params.start_year, scenario_params.end_year + 1)),
+            "cost": [100] * (scenario_params.end_year - scenario_params.start_year + 1),
+        }).sort("year"),
+    )
 
     run_model(scenario_params, input_params, ts_params)
