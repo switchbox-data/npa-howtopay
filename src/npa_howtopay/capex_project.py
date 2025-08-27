@@ -27,6 +27,7 @@ class CapexProject:
     def to_df(self) -> pl.DataFrame:
         return pl.DataFrame({
             "project_year": [self.project_year],
+            "project_type": [self.project_type],
             "original_cost": [self.original_cost],
             "depreciation_lifetime": [self.depreciation_lifetime],
         })
