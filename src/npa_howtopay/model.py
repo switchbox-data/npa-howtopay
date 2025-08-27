@@ -131,9 +131,7 @@ def apply_inflation(initial_year: int, output_year: int, params: InputParams) ->
             ]
         },
     )
-    return InputParams(
-        year=output_year, gas=updated_gas_params, electric=updated_electric_params, shared=updated_shared_params
-    )
+    return InputParams(gas=updated_gas_params, electric=updated_electric_params, shared=updated_shared_params)
 
 
 def run_model(scenario_params: ScenarioParams, input_params: InputParams, ts_params: TimeSeriesParams) -> pl.DataFrame:
