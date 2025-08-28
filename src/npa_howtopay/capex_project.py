@@ -30,7 +30,7 @@ class CapexProject:
             "project_year": [self.project_year],
             "project_type": [self.project_type],
             "original_cost": [self.original_cost],
-            "depreciation_lifetime": pl.Series([self.depreciation_lifetime], dtype=pl.Int64), 
+            "depreciation_lifetime": pl.Series([self.depreciation_lifetime], dtype=pl.Int64),
         })
 
 
@@ -44,7 +44,7 @@ def get_synthetic_initial_capex_projects(
         "project_year": range(start_year - depreciation_lifetime + 1, start_year + 1),
         "project_type": ["synthetic_initial"] * depreciation_lifetime,
         "original_cost": est_original_cost_per_year,
-        "depreciation_lifetime": pl.Series([depreciation_lifetime] * depreciation_lifetime, dtype=pl.Int64), 
+        "depreciation_lifetime": pl.Series([depreciation_lifetime] * depreciation_lifetime, dtype=pl.Int64),
     })
 
 
@@ -191,10 +191,11 @@ def compute_maintanence_costs(year: int, df: pl.DataFrame, maintenance_cost_pct:
     df = df.filter(pl.col("project_type") != "npa", pl.col("project_year") <= year)
     return float(df.select(pl.col("original_cost")).sum().item() * maintenance_cost_pct)
 
+
 def _return_empty_capex_df() -> pl.DataFrame:
     return pl.DataFrame({
         "project_year": pl.Series([], dtype=pl.Int64),
         "project_type": pl.Series([], dtype=pl.Utf8),
         "original_cost": pl.Series([], dtype=pl.Float64),
-        "depreciation_lifetime": pl.Series([], dtype=pl.Int64)
+        "depreciation_lifetime": pl.Series([], dtype=pl.Int64),
     })
