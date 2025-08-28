@@ -27,7 +27,7 @@ jobs:
           uv lock --locked
           uv run pre-commit run -a
           uv run mypy
-          uv run deptry .
+          uv run deptry src/
 
   tests-and-type-check:
     runs-on: ubuntu-latest
