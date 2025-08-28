@@ -5,30 +5,30 @@ __author__ = "Switchbox"
 __email__ = "hello@switch.box"
 
 # Import and expose the main classes and functions
+from . import capex_project as cp
+from . import npa_project as npa
+from .model import run_model
 from .params import (
+    KWH_PER_THERM,
+    ElectricParams,
+    GasParams,
     InputParams,
     ScenarioParams,
-    TimeSeriesParams,
-    GasParams,
-    ElectricParams,
     SharedParams,
+    TimeSeriesParams,
     load_scenario_from_yaml,
-    KWH_PER_THERM,
 )
-from .model import run_model
-from . import npa_project as npa
-from . import capex_project as cp
 
 __all__ = [
+    "KWH_PER_THERM",
+    "ElectricParams",
+    "GasParams",
     "InputParams",
     "ScenarioParams",
-    "TimeSeriesParams",
-    "GasParams",
-    "ElectricParams",
     "SharedParams",
-    "load_scenario_from_yaml",
-    "run_model",
-    "npa",
+    "TimeSeriesParams",
     "cp",
-    "KWH_PER_THERM",
+    "load_scenario_from_yaml",
+    "npa",
+    "run_model",
 ]
