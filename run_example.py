@@ -1,9 +1,17 @@
 import polars as pl
-from npa_howtopay import *
+
+from npa_howtopay import npa_project as npa
+from npa_howtopay.model import run_model
+
+# Make sure the package is installed in development mode first
+from npa_howtopay.params import (
+    ScenarioParams,
+    TimeSeriesParams,
+    load_scenario_from_yaml,
+)
 
 if __name__ == "__main__":
-    scenario_params = ScenarioParams(
-        start_year=2025, end_year=2050, gas_electric="gas", capex_opex="capex")
+    scenario_params = ScenarioParams(start_year=2025, end_year=2050, gas_electric="gas", capex_opex="capex")
     input_params = load_scenario_from_yaml("sample")
     ts_params = TimeSeriesParams(
         npa_projects=pl.concat(
