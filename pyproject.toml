@@ -21,7 +21,7 @@ dependencies = [
     "attrs>=25.3.0",
     "numpy>=2.0.2",
     "polars>=1.32.3",
-    "types-pyyaml>=6.0.12.20250822",
+    "pyyaml>=6.0",
 ]
 
 [project.urls]
@@ -36,7 +36,7 @@ dev = [
     "tox-uv>=1.11.3",
     "deptry>=0.23.0",
     "mypy>=0.991",
-
+    "types-PyYAML>=6.0.12.20250822",  # Move it here
     "ruff>=0.11.5",
     "mkdocs>=1.4.2",
     "mkdocs-material>=8.5.10",
