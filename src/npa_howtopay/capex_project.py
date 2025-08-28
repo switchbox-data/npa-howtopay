@@ -131,7 +131,7 @@ def get_grid_upgrade_capex_projects(
             depreciation_lifetime=grid_upgrade_depreciation_lifetime,
         ).to_df()
     else:
-        return pl.DataFrame()
+        return _return_empty_capex_df()
 
 
 def get_npa_capex_projects(
@@ -146,7 +146,7 @@ def get_npa_capex_projects(
             project_year=year, project_type="npa", original_cost=npa_total_cost, depreciation_lifetime=npa_lifetime
         ).to_df()
     else:
-        return pl.DataFrame()
+        return _return_empty_capex_df()
 
 
 # functions for computing things given a dataframe of capex projects
