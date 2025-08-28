@@ -161,9 +161,9 @@ def compute_bill_costs(
 def run_model(scenario_params: ScenarioParams, input_params: InputParams, ts_params: TimeSeriesParams) -> pl.DataFrame:
     gas_ratebase = input_params.gas.ratebase_init
     electric_ratebase = input_params.electric.ratebase_init
-
-    gas_capex_projects = pl.DataFrame()
-    electric_capex_projects = pl.DataFrame()
+    
+    gas_capex_projects = cp._return_empty_capex_df()
+    electric_capex_projects = cp._return_empty_capex_df()
 
     output_df = pl.DataFrame()
 
@@ -180,6 +180,7 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, ts_par
     )
 
     for year in range(scenario_params.start_year, scenario_params.end_year):
+
         # gas capex
         gas_capex_projects = pl.concat(
             [
@@ -342,7 +343,7 @@ if __name__ == "__main__":
                 ),
             ],
             how="vertical",
-        ).sort("year"),
+        ).sort("project_year"),
         gas_bau_lpp_costs_per_year=pl.DataFrame({
             "year": list(range(scenario_params.start_year, scenario_params.end_year + 1)),
             "cost": [100] * (scenario_params.end_year - scenario_params.start_year + 1),
