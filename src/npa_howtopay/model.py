@@ -120,16 +120,16 @@ def compute_bill_costs(
         (pl.col("electric_inflation_adjusted_revenue_requirement") / pl.col("electric_num_users")).alias(
             "electric_bill_per_user"
         ),
-        # =who_pays_electric_fixed_cost_pct*electric_inflation_adjusted_revenue_requirement/electric_num_users
+        # =who_pays_electric_user_bill_fixed_cost_pct*electric_inflation_adjusted_revenue_requirement/electric_num_users
         (
-            pl.lit(input_params.electric.fixed_cost_pct)
+            pl.lit(input_params.electric.user_bill_fixed_cost_pct)
             * pl.col("electric_inflation_adjusted_revenue_requirement")
             / pl.col("electric_num_users")
         ).alias("electric_fixed_cost_per_user"),
-        # =(1 - who_pays_electric_fixed_cost_pct)*electric_inflation_adjusted_revenue_requirement / electric_total_usage
+        # =(1 - who_pays_electric_user_bill_fixed_cost_pct)*electric_inflation_adjusted_revenue_requirement / electric_total_usage
         (
             (
-                pl.lit(1 - input_params.electric.fixed_cost_pct)
+                pl.lit(1 - input_params.electric.user_bill_fixed_cost_pct)
                 * pl.col("electric_inflation_adjusted_revenue_requirement")
             )
             / pl.col("electric_total_usage")
@@ -189,13 +189,13 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, ts_par
                     year=year,
                     current_ratebase=gas_ratebase,
                     baseline_non_lpp_gas_ratebase_growth=input_params.gas.baseline_non_lpp_ratebase_growth,
-                    depreciation_lifetime=input_params.gas.default_depreciation_lifetime,
+                    depreciation_lifetime=input_params.gas.non_lpp_depreciation_lifetime,
                 ),
                 cp.get_lpp_gas_capex_projects(
                     year=year,
                     gas_bau_lpp_costs_per_year=ts_params.gas_bau_lpp_costs_per_year,
                     npa_projects=ts_params.npa_projects,
-                    depreciation_lifetime=input_params.gas.lpp_depreciation_lifetime,
+                    depreciation_lifetime=input_params.gas.pipeline_depreciation_lifetime,
                 ),
             ],
             how="vertical",
