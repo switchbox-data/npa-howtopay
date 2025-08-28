@@ -17,14 +17,12 @@ KWH_PER_THERM = 29.3071
 class GasParams:
     baseline_non_lpp_ratebase_growth: float
     default_depreciation_lifetime: int
-    gas_generation_cost_per_therm_init: float
-    lpp_depreciation_lifetime: int
+    pipeline_depreciation_lifetime: int
     non_lpp_depreciation_lifetime: int
+    gas_generation_cost_per_therm_init: float
     num_users_init: int
     per_user_heating_need_therms: float
     pipeline_maintenance_cost_pct: float
-    pipeline_replacement_cost_init: float
-    pipeline_replacement_lifetime: float
     ratebase_init: float
     ror: float
     # passed down from SharedParams
@@ -33,9 +31,6 @@ class GasParams:
 
     def gas_generation_cost_per_therm(self, year: int) -> float:
         return self.gas_generation_cost_per_therm_init * (1 + self.cost_inflation_rate) ** (year - self.start_year)
-
-    def pipeline_replacement_cost(self, year: int) -> float:
-        return self.pipeline_replacement_cost_init * (1 + self.cost_inflation_rate) ** (year - self.start_year)
 
 
 @define
@@ -46,7 +41,7 @@ class ElectricParams:
     distribution_cost_per_peak_kw_increase_init: float
     electric_maintenance_cost_pct: float
     electricity_generation_cost_per_kwh_init: float
-    fixed_cost_pct: float = field(validator=validators.and_(validators.ge(0.0), validators.le(1.0)))
+    user_bill_fixed_cost_pct: float = field(validator=validators.and_(validators.ge(0.0), validators.le(1.0)))
     grid_upgrade_depreciation_lifetime: int
     hp_efficiency: float
     hp_peak_kw: float

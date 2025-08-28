@@ -16,6 +16,7 @@ from src.npa_howtopay.capex_project import (
     get_npa_capex_projects,
     get_synthetic_initial_capex_projects,
 )
+from src.npa_howtopay.npa_project import NpaProject
 
 
 def test_get_synthetic_initial_capex_projects():
@@ -64,16 +65,41 @@ def test_get_non_npa_electric_capex_projects():
 ## NPA TESTS
 @pytest.fixture
 def npa_projects():
-    return pl.DataFrame({
-        "project_year": [2025, 2025, 2025],
-        "num_converts": [10, 20, 5],  # 35 total
-        "pipe_value_per_user": [1000, 100, 3000],  # $27_000 total
-        # 5_500; does not affect capex?
-        "pipe_decomm_cost_per_user": [100, 200, 100],
-        "peak_kw_winter_headroom": [10, 100, 1],
-        "peak_kw_summer_headroom": [10, 1, 10],
-        "aircon_percent_adoption_pre_npa": [0.2, 0.8, 0.8],
-    })
+    return pl.concat(
+        [
+            NpaProject(
+                project_year=2025,
+                num_converts=10,
+                pipe_value_per_user=1000,
+                pipe_decomm_cost_per_user=100,
+                peak_kw_winter_headroom=10,
+                peak_kw_summer_headroom=10,
+                aircon_percent_adoption_pre_npa=0.2,
+                is_scattershot=False,
+            ).to_df(),
+            NpaProject(
+                project_year=2025,
+                num_converts=20,
+                pipe_value_per_user=100,
+                pipe_decomm_cost_per_user=200,
+                peak_kw_winter_headroom=100,
+                peak_kw_summer_headroom=1,
+                aircon_percent_adoption_pre_npa=0.8,
+                is_scattershot=False,
+            ).to_df(),
+            NpaProject(
+                project_year=2025,
+                num_converts=5,
+                pipe_value_per_user=3000,
+                pipe_decomm_cost_per_user=100,
+                peak_kw_winter_headroom=1,
+                peak_kw_summer_headroom=10,
+                aircon_percent_adoption_pre_npa=0.8,
+                is_scattershot=False,
+            ).to_df(),
+        ],
+        how="vertical",
+    )
 
 
 def test_get_lpp_gas_capex_projects(npa_projects):

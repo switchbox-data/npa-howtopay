@@ -4,7 +4,7 @@ import polars as pl
 
 
 ## All dataframes used by functions in this class will have the following columns:
-# year: int
+# project_year: int
 # num_converts: int
 # pipe_value_per_user: float
 # pipe_decomm_cost_per_user: float
@@ -17,7 +17,7 @@ import polars as pl
 
 @define
 class NpaProject:
-    year: int
+    project_year: int
     num_converts: int = field(validator=validators.ge(0))
     pipe_value_per_user: float = field()
     pipe_decomm_cost_per_user: float = field(validator=validators.ge(0.0))
@@ -33,7 +33,7 @@ class NpaProject:
 
     def to_df(self) -> pl.DataFrame:
         return pl.DataFrame({
-            "year": [self.year],
+            "project_year": [self.project_year],
             "num_converts": [self.num_converts],
             "pipe_value_per_user": [self.pipe_value_per_user],
             "pipe_decomm_cost_per_user": [self.pipe_decomm_cost_per_user],
@@ -76,7 +76,7 @@ def generate_npa_projects(
     ]
 
     return pl.DataFrame({
-        "year": project_years,
+        "project_year": project_years,
         "num_converts": [num_converts_per_project] * total_num_projects,
         "pipe_value_per_user": [float(pipe_value_per_user)] * total_num_projects,
         "pipe_decomm_cost_per_user": pipe_decomm_costs,
@@ -107,7 +107,7 @@ def generate_scattershot_electrification_projects(
     converts_per_year[:remainder] += 1
 
     return pl.DataFrame({
-        "year": years,
+        "project_year": years,
         "num_converts": converts_per_year,
         "pipe_value_per_user": [0.0] * num_years,
         "pipe_decomm_cost_per_user": [0.0] * num_years,
@@ -119,7 +119,7 @@ def generate_scattershot_electrification_projects(
 
 
 def compute_hp_converts_from_df(year: int, df: pl.DataFrame, cumulative: bool = False, npa_only: bool = False) -> int:
-    year_filter = pl.col("year") <= pl.lit(year) if cumulative else pl.col("year") == pl.lit(year)
+    year_filter = pl.col("project_year") <= pl.lit(year) if cumulative else pl.col("project_year") == pl.lit(year)
     npa_filter = ~pl.col("is_scattershot") if npa_only else pl.lit(True)
     return int(df.filter(year_filter & npa_filter).select(pl.col("num_converts")).sum().item())
 
@@ -131,13 +131,16 @@ def compute_npa_install_costs_from_df(year: int, df: pl.DataFrame, npa_install_c
 
 def compute_npa_pipe_cost_avoided_from_df(year: int, df: pl.DataFrame) -> float:
     return float(
-        df.filter(pl.col("year") == year).select(pl.col("pipe_value_per_user") * pl.col("num_converts")).sum().item()
+        df.filter(pl.col("project_year") == year)
+        .select(pl.col("pipe_value_per_user") * pl.col("num_converts"))
+        .sum()
+        .item()
     )
 
 
 def compute_peak_kw_increase_from_df(year: int, df: pl.DataFrame, peak_hp_kw: float, peak_aircon_kw: float) -> float:
     return float(
-        df.filter(pl.col("year") == year)
+        df.filter(pl.col("project_year") == year)
         .select(
             pl.max_horizontal(
                 pl.max_horizontal(
@@ -155,15 +158,18 @@ def compute_peak_kw_increase_from_df(year: int, df: pl.DataFrame, peak_hp_kw: fl
     )
 
 
-def compute_exiting_pipe_value_from_df(year: int, df: pl.DataFrame) -> float:
+def compute_existing_pipe_value_from_df(year: int, df: pl.DataFrame) -> float:
     return float(
-        df.filter(pl.col("year") == year).select(pl.col("pipe_value_per_user") * pl.col("num_converts")).sum().item()
+        df.filter(pl.col("project_year") == year)
+        .select(pl.col("pipe_value_per_user") * pl.col("num_converts"))
+        .sum()
+        .item()
     )
 
 
 def compute_pipe_decomm_cost_from_df(year: int, df: pl.DataFrame) -> float:
     return float(
-        df.filter(pl.col("year") == year)
+        df.filter(pl.col("project_year") == year)
         .select(pl.col("pipe_decomm_cost_per_user") * pl.col("num_converts"))
         .sum()
         .item()
