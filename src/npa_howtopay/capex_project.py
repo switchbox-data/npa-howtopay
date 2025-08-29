@@ -96,7 +96,7 @@ def get_lpp_gas_capex_projects(
             depreciation_lifetime=depreciation_lifetime,
         ).to_df()
     else:
-        return _return_empty_capex_df()
+        return return_empty_capex_df()
 
 
 def get_non_npa_electric_capex_projects(
@@ -131,7 +131,7 @@ def get_grid_upgrade_capex_projects(
             depreciation_lifetime=grid_upgrade_depreciation_lifetime,
         ).to_df()
     else:
-        return _return_empty_capex_df()
+        return return_empty_capex_df()
 
 
 def get_npa_capex_projects(
@@ -146,7 +146,7 @@ def get_npa_capex_projects(
             project_year=year, project_type="npa", original_cost=npa_total_cost, depreciation_lifetime=npa_lifetime
         ).to_df()
     else:
-        return _return_empty_capex_df()
+        return return_empty_capex_df()
 
 
 # functions for computing things given a dataframe of capex projects
@@ -192,7 +192,7 @@ def compute_maintanence_costs(year: int, df: pl.DataFrame, maintenance_cost_pct:
     return float(df.select(pl.col("original_cost")).sum().item() * maintenance_cost_pct)
 
 
-def _return_empty_capex_df() -> pl.DataFrame:
+def return_empty_capex_df() -> pl.DataFrame:
     return pl.DataFrame({
         "project_year": pl.Series([], dtype=pl.Int64),
         "project_type": pl.Series([], dtype=pl.Utf8),
