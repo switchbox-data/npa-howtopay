@@ -1,6 +1,6 @@
 # Modules
 ::: npa_howtopay.capex_project
-::: npa_howtopay.npa_project  
+::: npa_howtopay.npa_project
 ::: npa_howtopay.model
 ::: npa_howtopay.params
 
@@ -15,7 +15,7 @@ The `npa-howtopay` package provides functionality for analyzing energy costs and
 
 ### Parameters (`params`)
 - **`ElectricParams`** - Electric utility parameters
-- **`GasParams`** - Gas utility parameters  
+- **`GasParams`** - Gas utility parameters
 - **`InputParams`** - Input parameters for the model
 - **`ScenarioParams`** - Scenario-specific parameters
 - **`SharedParams`** - Shared parameters across scenarios
