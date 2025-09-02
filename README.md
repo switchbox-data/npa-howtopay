@@ -6,6 +6,8 @@
 [![Commit activity](https://img.shields.io/github/commit-activity/m/switchbox-data/npa-howtopay)](https://img.shields.io/github/commit-activity/m/switchbox-data/npa-howtopay)
 [![License](https://img.shields.io/github/license/switchbox-data/npa-howtopay)](https://img.shields.io/github/license/switchbox-data/npa-howtopay)
 
+[Link to the app](https://switchbox.shinyapps.io/npa_how_to_pay_app/)
+
 package for ca_npa_howtopay
 
 - **Github repository**: <https://github.com/switchbox-data/npa-howtopay/>
