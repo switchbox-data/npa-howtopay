@@ -132,7 +132,7 @@ class ScenarioParams:
         default=None, validator=validators.in_([None, "capex", "opex"])
     )
 
-    def __attrs_post_init__(self):
+    def __attrs_post_init__(self) -> None:
         # Conditional validation: if bau is True, gas_electric and capex_opex must be None
         if self.bau:
             if self.gas_electric is not None:

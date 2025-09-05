@@ -35,7 +35,10 @@ class YearContext:
 
 
 def create_scenario_runs(
-    start_year: int, end_year: int, gas_electric: Literal["gas", "electric"], capex_opex: Literal["capex", "opex"]
+    start_year: int,
+    end_year: int,
+    gas_electric: list[Literal["gas", "electric"]],
+    capex_opex: list[Literal["capex", "opex"]],
 ) -> dict[str, ScenarioParams]:
     scenarios = {
         "bau": ScenarioParams(start_year=start_year, end_year=end_year, bau=True),
@@ -473,7 +476,7 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, ts_par
     return results_df
 
 
-def create_delta_bau_df(results_df: dict[str, pl.DataFrame], compare_cols: list[str]) -> dict[str, pl.DataFrame]:
+def create_delta_bau_df(results_df: dict[str, pl.DataFrame], compare_cols: list[str]) -> pl.DataFrame:
     bau_df = results_df["bau"].select(compare_cols)
 
     # Create comparison DataFrames for each scenario
@@ -500,7 +503,7 @@ def create_delta_bau_df(results_df: dict[str, pl.DataFrame], compare_cols: list[
 
 def analyze_scenarios(
     scenario_runs: dict[str, ScenarioParams], input_params: InputParams, ts_params: TimeSeriesParams
-) -> None:
+) -> tuple[dict[str, pl.DataFrame], pl.DataFrame]:
     results_df = {}
     for scenario_name, scenario_params in scenario_runs.items():
         logger.info(f"Running scenario: {scenario_name}")

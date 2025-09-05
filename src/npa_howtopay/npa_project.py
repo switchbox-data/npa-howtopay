@@ -120,7 +120,7 @@ def generate_scattershot_electrification_projects(
 
 def compute_hp_converts_from_df(year: int, df: pl.DataFrame, cumulative: bool = False, npa_only: bool = False) -> int:
     if df.height == 0:
-        return 0.0
+        return 0
     year_filter = pl.col("project_year") <= pl.lit(year) if cumulative else pl.col("project_year") == pl.lit(year)
     npa_filter = ~pl.col("is_scattershot") if npa_only else pl.lit(True)
     return int(df.filter(year_filter & npa_filter).select(pl.col("num_converts")).sum().item())
