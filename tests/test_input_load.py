@@ -1,7 +1,7 @@
-from npa_howtopay.params import ScenarioParams
 import pytest
 
 from npa_howtopay.params import (
+    ScenarioParams,
     load_scenario_from_yaml,
     load_time_series_params_from_web_params,
     load_time_series_params_from_yaml,
