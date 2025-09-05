@@ -119,6 +119,8 @@ def generate_scattershot_electrification_projects(
 
 
 def compute_hp_converts_from_df(year: int, df: pl.DataFrame, cumulative: bool = False, npa_only: bool = False) -> int:
+    if df.height == 0:
+        return 0
     year_filter = pl.col("project_year") <= pl.lit(year) if cumulative else pl.col("project_year") == pl.lit(year)
     npa_filter = ~pl.col("is_scattershot") if npa_only else pl.lit(True)
     return int(df.filter(year_filter & npa_filter).select(pl.col("num_converts")).sum().item())
@@ -130,6 +132,8 @@ def compute_npa_install_costs_from_df(year: int, df: pl.DataFrame, npa_install_c
 
 
 def compute_npa_pipe_cost_avoided_from_df(year: int, df: pl.DataFrame) -> float:
+    if df.height == 0:
+        return 0.0
     return float(
         df.filter(pl.col("project_year") == year)
         .select(pl.col("pipe_value_per_user") * pl.col("num_converts"))
@@ -174,3 +178,16 @@ def compute_pipe_decomm_cost_from_df(year: int, df: pl.DataFrame) -> float:
         .sum()
         .item()
     )
+
+
+def return_empty_npa_df() -> pl.DataFrame:
+    return pl.DataFrame({
+        "project_year": [],
+        "num_converts": [],
+        "pipe_value_per_user": [],
+        "pipe_decomm_cost_per_user": [],
+        "peak_kw_winter_headroom": [],
+        "peak_kw_summer_headroom": [],
+        "aircon_percent_adoption_pre_npa": [],
+        "is_scattershot": [],
+    })

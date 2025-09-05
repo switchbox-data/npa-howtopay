@@ -9,6 +9,7 @@ from . import capex_project as cp
 from . import npa_project as npa
 from .model import run_model
 from .params import (
+    COMPARE_COLS,
     KWH_PER_THERM,
     ElectricParams,
     GasParams,
@@ -20,6 +21,7 @@ from .params import (
 )
 
 __all__ = [
+    "COMPARE_COLS",
     "KWH_PER_THERM",
     "ElectricParams",
     "GasParams",
