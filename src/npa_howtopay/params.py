@@ -31,8 +31,9 @@ COMPARE_COLS = [
     "electric_ratebase",
     # depreciation expense
     "gas_depreciation_expense",
-    "electric_depreciation_expense"
+    "electric_depreciation_expense",
 ]
+
 
 @define
 class GasParams:
@@ -124,8 +125,12 @@ class ScenarioParams:
     end_year: int
     bau: bool = field(default=False)
     taxpayer: bool = field(default=False)
-    gas_electric: Optional[Literal["gas", "electric"]] = field(default=None, validator=validators.in_([None, "gas", "electric"]))
-    capex_opex: Optional[Literal["capex", "opex"]] = field(default=None, validator=validators.in_([None, "capex", "opex"]))
+    gas_electric: Optional[Literal["gas", "electric"]] = field(
+        default=None, validator=validators.in_([None, "gas", "electric"])
+    )
+    capex_opex: Optional[Literal["capex", "opex"]] = field(
+        default=None, validator=validators.in_([None, "capex", "opex"])
+    )
 
     def __attrs_post_init__(self):
         # Conditional validation: if bau is True, gas_electric and capex_opex must be None
@@ -150,9 +155,8 @@ class ScenarioParams:
                 raise ValueError("capex_opex must be set when bau=False and taxpayer=False")
 
 
-
 def _load_params_from_yaml(yaml_path: str) -> InputParams:
-    yaml = YAML(typ='safe')
+    yaml = YAML(typ="safe")
     with open(yaml_path) as f:
         config = yaml.load(f)
 
@@ -164,18 +168,15 @@ def _load_params_from_yaml(yaml_path: str) -> InputParams:
 
 
 def _load_time_series_params_from_yaml(yaml_path: str) -> TimeSeriesParams:
-    yaml = YAML(typ='safe')
+    yaml = YAML(typ="safe")
     with open(yaml_path) as f:
         config = yaml.load(f)
 
     return TimeSeriesParams(
         npa_projects=pl.DataFrame(config["time_series"]["npa_projects"]),
-        gas_fixed_overhead_costs=pl.DataFrame(
-            config["time_series"]["gas_fixed_overhead_costs"]),
-        electric_fixed_overhead_costs=pl.DataFrame(
-            config["time_series"]["electric_fixed_overhead_costs"]),
-        gas_bau_lpp_costs_per_year=pl.DataFrame(
-            config["time_series"]["gas_bau_lpp_costs_per_year"]),
+        gas_fixed_overhead_costs=pl.DataFrame(config["time_series"]["gas_fixed_overhead_costs"]),
+        electric_fixed_overhead_costs=pl.DataFrame(config["time_series"]["electric_fixed_overhead_costs"]),
+        gas_bau_lpp_costs_per_year=pl.DataFrame(config["time_series"]["gas_bau_lpp_costs_per_year"]),
     )
 
 

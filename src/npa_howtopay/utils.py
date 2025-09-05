@@ -1,19 +1,25 @@
 import polars as pl
 import matplotlib.pyplot as plt
 
+
 def plot_revenue_requirements(plt_df: pl.DataFrame, scenario_colors: dict):
     """Utility Revenue Requirements - Faceted"""
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
 
     # Gas facet
-    ax1.set_title("GAS", fontsize=14, fontweight='bold')
+    ax1.set_title("GAS", fontsize=14, fontweight="bold")
     gas_data = plt_df.filter(pl.col("utility_type") == "gas")
 
     for scenario in gas_data["scenario_id"].unique():
-        color = scenario_colors.get(scenario, '#666666')
+        color = scenario_colors.get(scenario, "#666666")
         scenario_data = gas_data.filter(pl.col("scenario_id") == scenario)
-        ax1.plot(scenario_data["year"], scenario_data["inflation_adjusted_revenue_requirement"],
-                 color=color, label=scenario, linewidth=2)
+        ax1.plot(
+            scenario_data["year"],
+            scenario_data["inflation_adjusted_revenue_requirement"],
+            color=color,
+            label=scenario,
+            linewidth=2,
+        )
 
     ax1.set_xlabel("Year")
     ax1.set_ylabel("Delta ($)")
@@ -21,22 +27,26 @@ def plot_revenue_requirements(plt_df: pl.DataFrame, scenario_colors: dict):
     ax1.legend()
 
     # Electric facet
-    ax2.set_title("ELECTRIC", fontsize=14, fontweight='bold')
+    ax2.set_title("ELECTRIC", fontsize=14, fontweight="bold")
     electric_data = plt_df.filter(pl.col("utility_type") == "electric")
 
     for scenario in electric_data["scenario_id"].unique():
-        color = scenario_colors.get(scenario, '#666666')
+        color = scenario_colors.get(scenario, "#666666")
         scenario_data = electric_data.filter(pl.col("scenario_id") == scenario)
-        ax2.plot(scenario_data["year"], scenario_data["inflation_adjusted_revenue_requirement"],
-                 color=color, label=scenario, linewidth=2)
+        ax2.plot(
+            scenario_data["year"],
+            scenario_data["inflation_adjusted_revenue_requirement"],
+            color=color,
+            label=scenario,
+            linewidth=2,
+        )
 
     ax2.set_xlabel("Year")
     ax2.set_ylabel("Delta ($)")
     ax2.grid(True, alpha=0.3)
     ax2.legend()
 
-    plt.suptitle("Utility Revenue Requirements",
-                 fontsize=16, fontweight='bold')
+    plt.suptitle("Utility Revenue Requirements", fontsize=16, fontweight="bold")
     plt.tight_layout()
     plt.show()
 
@@ -46,14 +56,13 @@ def plot_volumetric_tariff(plt_df: pl.DataFrame, scenario_colors: dict):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
 
     # Gas facet
-    ax1.set_title("GAS", fontsize=14, fontweight='bold')
+    ax1.set_title("GAS", fontsize=14, fontweight="bold")
     gas_data = plt_df.filter(pl.col("utility_type") == "gas")
 
     for scenario in gas_data["scenario_id"].unique():
-        color = scenario_colors.get(scenario, '#666666')
+        color = scenario_colors.get(scenario, "#666666")
         scenario_data = gas_data.filter(pl.col("scenario_id") == scenario)
-        ax1.plot(scenario_data["year"], scenario_data["variable_cost"],
-                 color=color, label=scenario, linewidth=2)
+        ax1.plot(scenario_data["year"], scenario_data["variable_cost"], color=color, label=scenario, linewidth=2)
 
     ax1.set_xlabel("Year")
     ax1.set_ylabel("Delta ($/unit)")
@@ -61,21 +70,20 @@ def plot_volumetric_tariff(plt_df: pl.DataFrame, scenario_colors: dict):
     ax1.legend()
 
     # Electric facet
-    ax2.set_title("ELECTRIC", fontsize=14, fontweight='bold')
+    ax2.set_title("ELECTRIC", fontsize=14, fontweight="bold")
     electric_data = plt_df.filter(pl.col("utility_type") == "electric")
 
     for scenario in electric_data["scenario_id"].unique():
-        color = scenario_colors.get(scenario, '#666666')
+        color = scenario_colors.get(scenario, "#666666")
         scenario_data = electric_data.filter(pl.col("scenario_id") == scenario)
-        ax2.plot(scenario_data["year"], scenario_data["variable_cost"],
-                 color=color, label=scenario, linewidth=2)
+        ax2.plot(scenario_data["year"], scenario_data["variable_cost"], color=color, label=scenario, linewidth=2)
 
     ax2.set_xlabel("Year")
     ax2.set_ylabel("Delta ($/unit)")
     ax2.grid(True, alpha=0.3)
     ax2.legend()
 
-    plt.suptitle("Volumetric Tariff", fontsize=16, fontweight='bold')
+    plt.suptitle("Volumetric Tariff", fontsize=16, fontweight="bold")
     plt.tight_layout()
     plt.show()
 
@@ -85,14 +93,13 @@ def plot_ratebase(plt_df: pl.DataFrame, scenario_colors: dict):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
 
     # Gas facet
-    ax1.set_title("GAS", fontsize=14, fontweight='bold')
+    ax1.set_title("GAS", fontsize=14, fontweight="bold")
     gas_data = plt_df.filter(pl.col("utility_type") == "gas")
 
     for scenario in gas_data["scenario_id"].unique():
-        color = scenario_colors.get(scenario, '#666666')
+        color = scenario_colors.get(scenario, "#666666")
         scenario_data = gas_data.filter(pl.col("scenario_id") == scenario)
-        ax1.plot(scenario_data["year"], scenario_data["ratebase"],
-                 color=color, label=scenario, linewidth=2)
+        ax1.plot(scenario_data["year"], scenario_data["ratebase"], color=color, label=scenario, linewidth=2)
 
     ax1.set_xlabel("Year")
     ax1.set_ylabel("Delta ($)")
@@ -100,21 +107,20 @@ def plot_ratebase(plt_df: pl.DataFrame, scenario_colors: dict):
     ax1.legend()
 
     # Electric facet
-    ax2.set_title("ELECTRIC", fontsize=14, fontweight='bold')
+    ax2.set_title("ELECTRIC", fontsize=14, fontweight="bold")
     electric_data = plt_df.filter(pl.col("utility_type") == "electric")
 
     for scenario in electric_data["scenario_id"].unique():
-        color = scenario_colors.get(scenario, '#666666')
+        color = scenario_colors.get(scenario, "#666666")
         scenario_data = electric_data.filter(pl.col("scenario_id") == scenario)
-        ax2.plot(scenario_data["year"], scenario_data["ratebase"],
-                 color=color, label=scenario, linewidth=2)
+        ax2.plot(scenario_data["year"], scenario_data["ratebase"], color=color, label=scenario, linewidth=2)
 
     ax2.set_xlabel("Year")
     ax2.set_ylabel("Delta ($)")
     ax2.grid(True, alpha=0.3)
     ax2.legend()
 
-    plt.suptitle("Ratebase", fontsize=16, fontweight='bold')
+    plt.suptitle("Ratebase", fontsize=16, fontweight="bold")
     plt.tight_layout()
     plt.show()
 
@@ -124,14 +130,13 @@ def plot_depreciation_accruals(plt_df: pl.DataFrame, scenario_colors: dict):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
 
     # Gas facet
-    ax1.set_title("GAS", fontsize=14, fontweight='bold')
+    ax1.set_title("GAS", fontsize=14, fontweight="bold")
     gas_data = plt_df.filter(pl.col("utility_type") == "gas")
 
     for scenario in gas_data["scenario_id"].unique():
-        color = scenario_colors.get(scenario, '#666666')
+        color = scenario_colors.get(scenario, "#666666")
         scenario_data = gas_data.filter(pl.col("scenario_id") == scenario)
-        ax1.plot(scenario_data["year"], scenario_data["depreciation_expense"],
-                 color=color, label=scenario, linewidth=2)
+        ax1.plot(scenario_data["year"], scenario_data["depreciation_expense"], color=color, label=scenario, linewidth=2)
 
     ax1.set_xlabel("Year")
     ax1.set_ylabel("Delta ($)")
@@ -139,21 +144,20 @@ def plot_depreciation_accruals(plt_df: pl.DataFrame, scenario_colors: dict):
     ax1.legend()
 
     # Electric facet
-    ax2.set_title("ELECTRIC", fontsize=14, fontweight='bold')
+    ax2.set_title("ELECTRIC", fontsize=14, fontweight="bold")
     electric_data = plt_df.filter(pl.col("utility_type") == "electric")
 
     for scenario in electric_data["scenario_id"].unique():
-        color = scenario_colors.get(scenario, '#666666')
+        color = scenario_colors.get(scenario, "#666666")
         scenario_data = electric_data.filter(pl.col("scenario_id") == scenario)
-        ax2.plot(scenario_data["year"], scenario_data["depreciation_expense"],
-                 color=color, label=scenario, linewidth=2)
+        ax2.plot(scenario_data["year"], scenario_data["depreciation_expense"], color=color, label=scenario, linewidth=2)
 
     ax2.set_xlabel("Year")
     ax2.set_ylabel("Delta ($)")
     ax2.grid(True, alpha=0.3)
     ax2.legend()
 
-    plt.suptitle("Depreciation Accruals", fontsize=16, fontweight='bold')
+    plt.suptitle("Depreciation Accruals", fontsize=16, fontweight="bold")
     plt.tight_layout()
     plt.show()
 
@@ -162,8 +166,7 @@ def transform_to_long_format(delta_bau_df: pl.DataFrame) -> pl.DataFrame:
     """Transform wide format (gas_/electric_ prefixes) to long format with utility_type column"""
 
     # Get all columns except year and scenario_id
-    metric_cols = [col for col in delta_bau_df.columns if col not in [
-        "year", "scenario_id"]]
+    metric_cols = [col for col in delta_bau_df.columns if col not in ["year", "scenario_id"]]
 
     # Separate gas and electric columns
     gas_cols = [col for col in metric_cols if col.startswith("gas_")]
@@ -193,18 +196,18 @@ def transform_to_long_format(delta_bau_df: pl.DataFrame) -> pl.DataFrame:
             electric_rename_map[col] = base_col
 
     # Create gas dataframe with sorted columns
-    gas_df = delta_bau_df.select([
-        "year",
-        "scenario_id",
-        *gas_cols
-    ]).rename(gas_rename_map).with_columns(pl.lit("gas").alias("utility_type"))
+    gas_df = (
+        delta_bau_df.select(["year", "scenario_id", *gas_cols])
+        .rename(gas_rename_map)
+        .with_columns(pl.lit("gas").alias("utility_type"))
+    )
 
     # Create electric dataframe with sorted columns
-    electric_df = delta_bau_df.select([
-        "year",
-        "scenario_id",
-        *electric_cols
-    ]).rename(electric_rename_map).with_columns(pl.lit("electric").alias("utility_type"))
+    electric_df = (
+        delta_bau_df.select(["year", "scenario_id", *electric_cols])
+        .rename(electric_rename_map)
+        .with_columns(pl.lit("electric").alias("utility_type"))
+    )
 
     # Concatenate them
     long_df = pl.concat([gas_df, electric_df], how="vertical")
