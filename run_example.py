@@ -39,4 +39,3 @@ if __name__ == "__main__":
 
     out2 = run_model(scenario_params, input_params2, ts_params2)
     print("Web-params-based result:", out2)
-
