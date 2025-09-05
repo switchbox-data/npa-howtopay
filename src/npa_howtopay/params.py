@@ -13,6 +13,26 @@ DATA_DIR = os.path.join(CURRENT_DIR, "data")
 
 KWH_PER_THERM = 29.3071
 
+COMPARE_COLS = [
+    "year",
+    # revenue requirement
+    "gas_inflation_adjusted_revenue_requirement",
+    "electric_inflation_adjusted_revenue_requirement",
+    # delivery charges
+    "gas_nonconverts_bill_per_user",
+    "gas_converts_bill_per_user",
+    "electric_nonconverts_bill_per_user",
+    "electric_converts_bill_per_user",
+    # volumetric rate
+    "gas_variable_cost_per_therm",
+    "electric_variable_cost_per_kwh",
+    # ratebase
+    "gas_ratebase",
+    "electric_ratebase",
+    # depreciation expense
+    "gas_depreciation_expense",
+    "electric_depreciation_expense"
+]
 
 @define
 class GasParams:
@@ -100,10 +120,34 @@ class TimeSeriesParams:
 
 @define
 class ScenarioParams:
-    gas_electric: Literal["gas", "electric"] = field(validator=validators.in_(["gas", "electric"]))
-    capex_opex: Literal["capex", "opex"] = field(validator=validators.in_(["capex", "opex"]))
-    end_year: int
     start_year: int
+    end_year: int
+    bau: bool = field(default=False)
+    taxpayer: bool = field(default=False)
+    gas_electric: Optional[Literal["gas", "electric"]] = field(default=None, validator=validators.in_([None, "gas", "electric"]))
+    capex_opex: Optional[Literal["capex", "opex"]] = field(default=None, validator=validators.in_([None, "capex", "opex"]))
+
+    def __attrs_post_init__(self):
+        # Conditional validation: if bau is True, gas_electric and capex_opex must be None
+        if self.bau:
+            if self.gas_electric is not None:
+                raise ValueError("gas_electric must be None when bau=True")
+            if self.capex_opex is not None:
+                raise ValueError("capex_opex must be None when bau=True")
+
+        # Conditional validation: if taxpayer is True, gas_electric and capex_opex must be None
+        if self.taxpayer:
+            if self.gas_electric is not None:
+                raise ValueError("gas_electric must be None when taxpayer=True")
+            if self.capex_opex is not None:
+                raise ValueError("capex_opex must be None when taxpayer=True")
+        if self.bau and self.taxpayer:
+            raise ValueError("Only one of bau or taxpayer can be True")
+        if not self.bau and not self.taxpayer:
+            if self.gas_electric is None:
+                raise ValueError("gas_electric must be set when bau=False and taxpayer=False")
+            if self.capex_opex is None:
+                raise ValueError("capex_opex must be set when bau=False and taxpayer=False")
 
 
 def _load_params_from_yaml(yaml_path: str) -> InputParams:

@@ -1,3 +1,4 @@
+from npa_howtopay.params import ScenarioParams
 import pytest
 
 from npa_howtopay.params import (
@@ -95,3 +96,31 @@ def test_load_time_series_params_from_yaml():
         "aircon_percent_adoption_pre_npa",
         "is_scattershot",
     }
+
+
+def test_scenario_params_validation():
+    """Test conditional validation for ScenarioParams"""
+    # Invalid BAU scenarios
+    with pytest.raises(ValueError, match="gas_electric must be None when bau=True"):
+        ScenarioParams(2025, 2050, bau=True, gas_electric="gas")
+
+    with pytest.raises(ValueError, match="capex_opex must be None when bau=True"):
+        ScenarioParams(2025, 2050, bau=True, capex_opex="capex")
+
+    # Invalid taxpayer scenarios
+    with pytest.raises(ValueError, match="gas_electric must be None when taxpayer=True"):
+        ScenarioParams(2025, 2050, taxpayer=True, gas_electric="electric")
+
+    with pytest.raises(ValueError, match="capex_opex must be None when taxpayer=True"):
+        ScenarioParams(2025, 2050, taxpayer=True, capex_opex="opex")
+
+    # Both bau and taxpayer True
+    with pytest.raises(ValueError, match="Only one of bau or taxpayer can be True"):
+        ScenarioParams(2025, 2050, bau=True, taxpayer=True)
+
+    # Invalid normal scenarios (missing required fields)
+    with pytest.raises(ValueError, match="gas_electric must be set when bau=False and taxpayer=False"):
+        ScenarioParams(2025, 2050)
+
+    with pytest.raises(ValueError, match="capex_opex must be set when bau=False and taxpayer=False"):
+        ScenarioParams(2025, 2050, gas_electric="gas")
