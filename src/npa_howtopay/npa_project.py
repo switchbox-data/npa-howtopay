@@ -174,3 +174,16 @@ def compute_pipe_decomm_cost_from_df(year: int, df: pl.DataFrame) -> float:
         .sum()
         .item()
     )
+
+
+def return_empty_npa_df() -> pl.DataFrame:
+    return pl.DataFrame({
+        "project_year": [],
+        "num_converts": [],
+        "pipe_value_per_user": [],
+        "pipe_decomm_cost_per_user": [],
+        "peak_kw_winter_headroom": [],
+        "peak_kw_summer_headroom": [],
+        "aircon_percent_adoption_pre_npa": [],
+        "is_scattershot": [],
+    })
