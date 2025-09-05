@@ -7,9 +7,9 @@ __email__ = "hello@switch.box"
 # Import and expose the main classes and functions
 from . import capex_project as cp
 from . import npa_project as npa
-from .model import run_model
 from .params import (
     KWH_PER_THERM,
+    COMPARE_COLS,
     ElectricParams,
     GasParams,
     InputParams,
@@ -18,9 +18,11 @@ from .params import (
     TimeSeriesParams,
     load_scenario_from_yaml,
 )
+from .model import run_model
 
 __all__ = [
     "KWH_PER_THERM",
+    "COMPARE_COLS",
     "ElectricParams",
     "GasParams",
     "InputParams",
