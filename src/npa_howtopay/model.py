@@ -7,12 +7,16 @@ from .params import (
     SharedParams,
     TimeSeriesParams,
     KWH_PER_THERM,
+    COMPARE_COLS,
 )
 from . import npa_project as npa
 from . import capex_project as cp
 from attrs import evolve
 from dataclasses import dataclass
-from typing import Literal
+from typing import Literal, Optional
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -28,6 +32,24 @@ class YearContext:
     electric_maintenance_cost: float
     gas_npa_opex: float
     electric_npa_opex: float
+
+
+def create_scenario_runs(
+    start_year: int, end_year: int, gas_electric: Literal["gas", "electric"], capex_opex: Literal["capex", "opex"]
+) -> dict[str, ScenarioParams]:
+    scenarios = {
+        "bau": ScenarioParams(start_year=start_year, end_year=end_year, bau=True),
+        "taxpayer": ScenarioParams(start_year=start_year, end_year=end_year, taxpayer=True),
+    }
+
+    # Add the regular scenarios
+    for ge in gas_electric:
+        for co in capex_opex:
+            scenarios[f"{ge}_{co}"] = ScenarioParams(
+                start_year=start_year, end_year=end_year, gas_electric=ge, capex_opex=co
+            )
+
+    return scenarios
 
 
 def compute_intermediate_cols_gas(
@@ -121,6 +143,13 @@ def calculate_electric_variable_cost_per_kwh(
     return (1 - fixed_cost_pct) * electric_infl_adj_revenue / total_electric_usage_kwh
 
 
+def calculate_gas_variable_cost_per_therm(
+    gas_infl_adj_revenue: float, total_gas_usage_therms: float, fixed_cost_pct: float = 0.0
+) -> float:
+    """Calculate electric variable cost per kWh."""
+    return (1 - fixed_cost_pct) * gas_infl_adj_revenue / total_gas_usage_therms
+
+
 def calculate_converts_electric_bill_per_user(
     electric_fixed_cost: float,
     electric_variable_cost: float,
@@ -178,18 +207,6 @@ def compute_bill_costs(
         (pl.col("gas_revenue_requirement") + pl.col("electric_revenue_requirement")).alias("total_revenue_requirement"),
     ])
 
-    # Second: Create total inflation adjusted revenue requirement
-    # df = df.with_columns([
-    #     pl.struct(["gas_inflation_adjusted_revenue_requirement", "electric_inflation_adjusted_revenue_requirement"])
-    #     .map_elements(
-    #         lambda x: calculate_total_inflation_adjusted_revenue_requirement(
-    #             x["gas_inflation_adjusted_revenue_requirement"], x["electric_inflation_adjusted_revenue_requirement"]
-    #         ),
-    #         return_dtype=pl.Float64,
-    #     )
-    #     .alias("total_inflation_adjusted_revenue_requirement"),
-    # ])
-
     # Create per-user gas bill columns and total inflation adjusted revenue requirement
     df = df.with_columns([
         (
@@ -207,8 +224,16 @@ def compute_bill_costs(
             lambda x: calculate_bill_per_user(x["gas_inflation_adjusted_revenue_requirement"], x["gas_num_users"]),
             return_dtype=pl.Float64,
         )
-        .alias("nonconverts_gas_bill_per_user"),
-        pl.lit(0).alias("converts_gas_bill_per_user"),
+        .alias("gas_nonconverts_bill_per_user"),
+        pl.lit(0.0).alias("gas_converts_bill_per_user"),
+        pl.struct(["gas_inflation_adjusted_revenue_requirement", "total_gas_usage_therms"])
+        .map_elements(
+            lambda x: calculate_gas_variable_cost_per_therm(
+                x["gas_inflation_adjusted_revenue_requirement"], x["total_gas_usage_therms"]
+            ),
+            return_dtype=pl.Float64,
+        )
+        .alias("gas_variable_cost_per_therm"),
     ])
 
     # Create electric cost calculations
@@ -256,7 +281,7 @@ def compute_bill_costs(
             ),
             return_dtype=pl.Float64,
         )
-        .alias("converts_electric_bill_per_user"),
+        .alias("electric_converts_bill_per_user"),
         pl.struct(["electric_fixed_cost_per_user", "electric_variable_cost_per_kwh"])
         .map_elements(
             lambda x: calculate_nonconverts_electric_bill_per_user(
@@ -266,23 +291,23 @@ def compute_bill_costs(
             ),
             return_dtype=pl.Float64,
         )
-        .alias("nonconverts_electric_bill_per_user"),
+        .alias("electric_nonconverts_bill_per_user"),
     ])
 
     # Create total bill calculations
     df = df.with_columns([
-        pl.struct(["converts_gas_bill_per_user", "converts_electric_bill_per_user"])
+        pl.struct(["gas_converts_bill_per_user", "electric_converts_bill_per_user"])
         .map_elements(
             lambda x: calculate_converts_total_bill_per_user(
-                x["converts_gas_bill_per_user"], x["converts_electric_bill_per_user"]
+                x["gas_converts_bill_per_user"], x["electric_converts_bill_per_user"]
             ),
             return_dtype=pl.Float64,
         )
         .alias("converts_total_bill_per_user"),
-        pl.struct(["nonconverts_gas_bill_per_user", "nonconverts_electric_bill_per_user"])
+        pl.struct(["gas_nonconverts_bill_per_user", "electric_nonconverts_bill_per_user"])
         .map_elements(
             lambda x: calculate_nonconverts_total_bill_per_user(
-                x["nonconverts_gas_bill_per_user"], x["nonconverts_electric_bill_per_user"]
+                x["gas_nonconverts_bill_per_user"], x["electric_nonconverts_bill_per_user"]
             ),
             return_dtype=pl.Float64,
         )
@@ -293,8 +318,15 @@ def compute_bill_costs(
 
 
 def run_model(scenario_params: ScenarioParams, input_params: InputParams, ts_params: TimeSeriesParams) -> pl.DataFrame:
+    if scenario_params.bau:
+        ts_params = evolve(ts_params, npa_projects=npa.return_empty_npa_df())
+
     gas_ratebase = input_params.gas.ratebase_init
     electric_ratebase = input_params.electric.ratebase_init
+
+    # these will be updated depending on the scenario
+    gas_npa_opex = 0.0
+    electric_npa_opex = 0.0
 
     gas_capex_projects = cp.return_empty_capex_df()
     electric_capex_projects = cp.return_empty_capex_df()
@@ -360,11 +392,8 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, ts_par
             how="vertical",
         )
 
-        # npa capex/opex
+        # update npa capex/opex
         if scenario_params.capex_opex == "capex":
-            # set npa opex to 0
-            gas_npa_opex = 0.0
-            electric_npa_opex = 0.0
             # add npa capex
             npa_capex = cp.get_npa_capex_projects(
                 year,
@@ -381,9 +410,7 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, ts_par
                 gas_npa_opex = npa.compute_npa_install_costs_from_df(
                     year, ts_params.npa_projects, input_params.shared.npa_install_costs(year)
                 )
-                electric_npa_opex = 0.0
             elif scenario_params.gas_electric == "electric":
-                gas_npa_opex = 0.0
                 electric_npa_opex = npa.compute_npa_install_costs_from_df(
                     year, ts_params.npa_projects, input_params.shared.npa_install_costs(year)
                 )
@@ -446,6 +473,37 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, ts_par
     return results_df
 
 
-####### ticket
-def analyze_scenarios(scenario_runs: dict[ScenarioParams, pl.DataFrame]) -> None:
-    pass
+def create_delta_bau_df(results_df: dict[str, pl.DataFrame], compare_cols: list[str]) -> dict[str, pl.DataFrame]:
+    bau_df = results_df["bau"].select(compare_cols)
+
+    # Create comparison DataFrames for each scenario
+    comparison_dfs = {}
+    for scenario_name, scenario_df in results_df.items():
+        if scenario_name == "bau":
+            continue  # Skip BAU itself
+
+        # Join with BAU to subtract values
+        comparison_df = scenario_df.join(
+            bau_df.select(["year"] + [col for col in compare_cols[1:]]).rename({
+                col: f"bau_{col}" for col in compare_cols[1:]
+            }),
+            on="year",
+        ).select(["year", *[pl.col(col).sub(pl.col(f"bau_{col}")) for col in compare_cols[1:]]])
+
+        comparison_dfs[scenario_name] = comparison_df
+    delta_bau_df = pl.concat(
+        [df.with_columns(pl.lit(scenario_id).alias("scenario_id")) for scenario_id, df in comparison_dfs.items()],
+        how="vertical",
+    )
+    return delta_bau_df
+
+
+def analyze_scenarios(
+    scenario_runs: dict[str, ScenarioParams], input_params: InputParams, ts_params: TimeSeriesParams
+) -> None:
+    results_df = {}
+    for scenario_name, scenario_params in scenario_runs.items():
+        logger.info(f"Running scenario: {scenario_name}")
+        results_df[scenario_name] = run_model(scenario_params, input_params, ts_params)
+
+    return results_df, create_delta_bau_df(results_df, COMPARE_COLS)
