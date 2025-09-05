@@ -1,6 +1,6 @@
 from attrs import define, field, validators
 from typing import Literal, Optional
-import yaml
+from ruamel.yaml import YAML
 import polars as pl
 from npa_howtopay.web_params import create_time_series_from_web_params, WebParams
 
@@ -150,9 +150,11 @@ class ScenarioParams:
                 raise ValueError("capex_opex must be set when bau=False and taxpayer=False")
 
 
+
 def _load_params_from_yaml(yaml_path: str) -> InputParams:
+    yaml = YAML(typ='safe')
     with open(yaml_path) as f:
-        config = yaml.safe_load(f)
+        config = yaml.load(f)
 
     return InputParams(
         gas=GasParams(**config["gas"]),
@@ -162,14 +164,18 @@ def _load_params_from_yaml(yaml_path: str) -> InputParams:
 
 
 def _load_time_series_params_from_yaml(yaml_path: str) -> TimeSeriesParams:
+    yaml = YAML(typ='safe')
     with open(yaml_path) as f:
-        config = yaml.safe_load(f)
+        config = yaml.load(f)
 
     return TimeSeriesParams(
         npa_projects=pl.DataFrame(config["time_series"]["npa_projects"]),
-        gas_fixed_overhead_costs=pl.DataFrame(config["time_series"]["gas_fixed_overhead_costs"]),
-        electric_fixed_overhead_costs=pl.DataFrame(config["time_series"]["electric_fixed_overhead_costs"]),
-        gas_bau_lpp_costs_per_year=pl.DataFrame(config["time_series"]["gas_bau_lpp_costs_per_year"]),
+        gas_fixed_overhead_costs=pl.DataFrame(
+            config["time_series"]["gas_fixed_overhead_costs"]),
+        electric_fixed_overhead_costs=pl.DataFrame(
+            config["time_series"]["electric_fixed_overhead_costs"]),
+        gas_bau_lpp_costs_per_year=pl.DataFrame(
+            config["time_series"]["gas_bau_lpp_costs_per_year"]),
     )
 
 
