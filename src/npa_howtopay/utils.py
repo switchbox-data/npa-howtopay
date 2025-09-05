@@ -2,27 +2,35 @@ import polars as pl
 import matplotlib.pyplot as plt
 
 
-def plot_revenue_requirements(plt_df: pl.DataFrame, scenario_colors: dict) -> None:
+def plot_revenue_requirements(plt_df: pl.DataFrame, scenario_colors: dict, show_absolute: bool = False) -> None:
     """Utility Revenue Requirements - Faceted"""
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
+
+    # Define line styles to cycle through
+    line_styles = ["-", "--", "-.", ":", "-", "--", "-.", ":"]
+
+    # Determine y-axis label based on show_absolute parameter
+    y_label = "Absolute Value ($)" if show_absolute else "Delta ($)"
 
     # Gas facet
     ax1.set_title("GAS", fontsize=14, fontweight="bold")
     gas_data = plt_df.filter(pl.col("utility_type") == "gas")
 
-    for scenario in gas_data["scenario_id"].unique():
+    for i, scenario in enumerate(gas_data["scenario_id"].unique()):
         color = scenario_colors.get(scenario, "#666666")
+        linestyle = line_styles[i % len(line_styles)]
         scenario_data = gas_data.filter(pl.col("scenario_id") == scenario)
         ax1.plot(
             scenario_data["year"],
             scenario_data["inflation_adjusted_revenue_requirement"],
             color=color,
+            linestyle=linestyle,
             label=scenario,
             linewidth=2,
         )
 
     ax1.set_xlabel("Year")
-    ax1.set_ylabel("Delta ($)")
+    ax1.set_ylabel(y_label)
     ax1.grid(True, alpha=0.3)
     ax1.legend()
 
@@ -30,42 +38,59 @@ def plot_revenue_requirements(plt_df: pl.DataFrame, scenario_colors: dict) -> No
     ax2.set_title("ELECTRIC", fontsize=14, fontweight="bold")
     electric_data = plt_df.filter(pl.col("utility_type") == "electric")
 
-    for scenario in electric_data["scenario_id"].unique():
+    for i, scenario in enumerate(electric_data["scenario_id"].unique()):
         color = scenario_colors.get(scenario, "#666666")
+        linestyle = line_styles[i % len(line_styles)]
         scenario_data = electric_data.filter(pl.col("scenario_id") == scenario)
         ax2.plot(
             scenario_data["year"],
             scenario_data["inflation_adjusted_revenue_requirement"],
             color=color,
+            linestyle=linestyle,
             label=scenario,
             linewidth=2,
         )
 
     ax2.set_xlabel("Year")
-    ax2.set_ylabel("Delta ($)")
+    ax2.set_ylabel(y_label)
     ax2.grid(True, alpha=0.3)
     ax2.legend()
 
-    plt.suptitle("Utility Revenue Requirements", fontsize=16, fontweight="bold")
+    title_suffix = " (Absolute Values)" if show_absolute else ""
+    plt.suptitle(f"Utility Revenue Requirements{title_suffix}", fontsize=16, fontweight="bold")
     plt.tight_layout()
     plt.show()
 
 
-def plot_volumetric_tariff(plt_df: pl.DataFrame, scenario_colors: dict) -> None:
+def plot_volumetric_tariff(plt_df: pl.DataFrame, scenario_colors: dict, show_absolute: bool = False) -> None:
     """Volumetric Tariff - Faceted"""
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
 
+    # Define line styles to cycle through
+    line_styles = ["-", "--", "-.", ":", "-", "--", "-.", ":"]
+
+    # Determine y-axis label based on show_absolute parameter
+    y_label = "Absolute Value ($/unit)" if show_absolute else "Delta ($/unit)"
+
     # Gas facet
     ax1.set_title("GAS", fontsize=14, fontweight="bold")
     gas_data = plt_df.filter(pl.col("utility_type") == "gas")
 
-    for scenario in gas_data["scenario_id"].unique():
+    for i, scenario in enumerate(gas_data["scenario_id"].unique()):
         color = scenario_colors.get(scenario, "#666666")
+        linestyle = line_styles[i % len(line_styles)]
         scenario_data = gas_data.filter(pl.col("scenario_id") == scenario)
-        ax1.plot(scenario_data["year"], scenario_data["variable_cost"], color=color, label=scenario, linewidth=2)
+        ax1.plot(
+            scenario_data["year"],
+            scenario_data["variable_cost"],
+            color=color,
+            linestyle=linestyle,
+            label=scenario,
+            linewidth=2,
+        )
 
     ax1.set_xlabel("Year")
-    ax1.set_ylabel("Delta ($/unit)")
+    ax1.set_ylabel(y_label)
     ax1.grid(True, alpha=0.3)
     ax1.legend()
 
@@ -73,36 +98,59 @@ def plot_volumetric_tariff(plt_df: pl.DataFrame, scenario_colors: dict) -> None:
     ax2.set_title("ELECTRIC", fontsize=14, fontweight="bold")
     electric_data = plt_df.filter(pl.col("utility_type") == "electric")
 
-    for scenario in electric_data["scenario_id"].unique():
+    for i, scenario in enumerate(electric_data["scenario_id"].unique()):
         color = scenario_colors.get(scenario, "#666666")
+        linestyle = line_styles[i % len(line_styles)]
         scenario_data = electric_data.filter(pl.col("scenario_id") == scenario)
-        ax2.plot(scenario_data["year"], scenario_data["variable_cost"], color=color, label=scenario, linewidth=2)
+        ax2.plot(
+            scenario_data["year"],
+            scenario_data["variable_cost"],
+            color=color,
+            linestyle=linestyle,
+            label=scenario,
+            linewidth=2,
+        )
 
     ax2.set_xlabel("Year")
-    ax2.set_ylabel("Delta ($/unit)")
+    ax2.set_ylabel(y_label)
     ax2.grid(True, alpha=0.3)
     ax2.legend()
 
-    plt.suptitle("Volumetric Tariff", fontsize=16, fontweight="bold")
+    title_suffix = " (Absolute Values)" if show_absolute else ""
+    plt.suptitle(f"Volumetric Tariff{title_suffix}", fontsize=16, fontweight="bold")
     plt.tight_layout()
     plt.show()
 
 
-def plot_ratebase(plt_df: pl.DataFrame, scenario_colors: dict) -> None:
+def plot_ratebase(plt_df: pl.DataFrame, scenario_colors: dict, show_absolute: bool = False) -> None:
     """Ratebase - Faceted"""
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
 
+    # Define line styles to cycle through
+    line_styles = ["-", "--", "-.", ":", "-", "--", "-.", ":"]
+
+    # Determine y-axis label based on show_absolute parameter
+    y_label = "Absolute Value ($)" if show_absolute else "Delta ($)"
+
     # Gas facet
     ax1.set_title("GAS", fontsize=14, fontweight="bold")
     gas_data = plt_df.filter(pl.col("utility_type") == "gas")
 
-    for scenario in gas_data["scenario_id"].unique():
+    for i, scenario in enumerate(gas_data["scenario_id"].unique()):
         color = scenario_colors.get(scenario, "#666666")
+        linestyle = line_styles[i % len(line_styles)]
         scenario_data = gas_data.filter(pl.col("scenario_id") == scenario)
-        ax1.plot(scenario_data["year"], scenario_data["ratebase"], color=color, label=scenario, linewidth=2)
+        ax1.plot(
+            scenario_data["year"],
+            scenario_data["ratebase"],
+            color=color,
+            linestyle=linestyle,
+            label=scenario,
+            linewidth=2,
+        )
 
     ax1.set_xlabel("Year")
-    ax1.set_ylabel("Delta ($)")
+    ax1.set_ylabel(y_label)
     ax1.grid(True, alpha=0.3)
     ax1.legend()
 
@@ -110,36 +158,59 @@ def plot_ratebase(plt_df: pl.DataFrame, scenario_colors: dict) -> None:
     ax2.set_title("ELECTRIC", fontsize=14, fontweight="bold")
     electric_data = plt_df.filter(pl.col("utility_type") == "electric")
 
-    for scenario in electric_data["scenario_id"].unique():
+    for i, scenario in enumerate(electric_data["scenario_id"].unique()):
         color = scenario_colors.get(scenario, "#666666")
+        linestyle = line_styles[i % len(line_styles)]
         scenario_data = electric_data.filter(pl.col("scenario_id") == scenario)
-        ax2.plot(scenario_data["year"], scenario_data["ratebase"], color=color, label=scenario, linewidth=2)
+        ax2.plot(
+            scenario_data["year"],
+            scenario_data["ratebase"],
+            color=color,
+            linestyle=linestyle,
+            label=scenario,
+            linewidth=2,
+        )
 
     ax2.set_xlabel("Year")
-    ax2.set_ylabel("Delta ($)")
+    ax2.set_ylabel(y_label)
     ax2.grid(True, alpha=0.3)
     ax2.legend()
 
-    plt.suptitle("Ratebase", fontsize=16, fontweight="bold")
+    title_suffix = " (Absolute Values)" if show_absolute else ""
+    plt.suptitle(f"Ratebase{title_suffix}", fontsize=16, fontweight="bold")
     plt.tight_layout()
     plt.show()
 
 
-def plot_depreciation_accruals(plt_df: pl.DataFrame, scenario_colors: dict) -> None:
+def plot_depreciation_accruals(plt_df: pl.DataFrame, scenario_colors: dict, show_absolute: bool = False) -> None:
     """Depreciation Accruals - Faceted"""
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
+
+    # Define line styles to cycle through
+    line_styles = ["-", "--", "-.", ":", "-", "--", "-.", ":"]
+
+    # Determine y-axis label based on show_absolute parameter
+    y_label = "Absolute Value ($)" if show_absolute else "Delta ($)"
 
     # Gas facet
     ax1.set_title("GAS", fontsize=14, fontweight="bold")
     gas_data = plt_df.filter(pl.col("utility_type") == "gas")
 
-    for scenario in gas_data["scenario_id"].unique():
+    for i, scenario in enumerate(gas_data["scenario_id"].unique()):
         color = scenario_colors.get(scenario, "#666666")
+        linestyle = line_styles[i % len(line_styles)]
         scenario_data = gas_data.filter(pl.col("scenario_id") == scenario)
-        ax1.plot(scenario_data["year"], scenario_data["depreciation_expense"], color=color, label=scenario, linewidth=2)
+        ax1.plot(
+            scenario_data["year"],
+            scenario_data["depreciation_expense"],
+            color=color,
+            linestyle=linestyle,
+            label=scenario,
+            linewidth=2,
+        )
 
     ax1.set_xlabel("Year")
-    ax1.set_ylabel("Delta ($)")
+    ax1.set_ylabel(y_label)
     ax1.grid(True, alpha=0.3)
     ax1.legend()
 
@@ -147,17 +218,26 @@ def plot_depreciation_accruals(plt_df: pl.DataFrame, scenario_colors: dict) -> N
     ax2.set_title("ELECTRIC", fontsize=14, fontweight="bold")
     electric_data = plt_df.filter(pl.col("utility_type") == "electric")
 
-    for scenario in electric_data["scenario_id"].unique():
+    for i, scenario in enumerate(electric_data["scenario_id"].unique()):
         color = scenario_colors.get(scenario, "#666666")
+        linestyle = line_styles[i % len(line_styles)]
         scenario_data = electric_data.filter(pl.col("scenario_id") == scenario)
-        ax2.plot(scenario_data["year"], scenario_data["depreciation_expense"], color=color, label=scenario, linewidth=2)
+        ax2.plot(
+            scenario_data["year"],
+            scenario_data["depreciation_expense"],
+            color=color,
+            linestyle=linestyle,
+            label=scenario,
+            linewidth=2,
+        )
 
     ax2.set_xlabel("Year")
-    ax2.set_ylabel("Delta ($)")
+    ax2.set_ylabel(y_label)
     ax2.grid(True, alpha=0.3)
     ax2.legend()
 
-    plt.suptitle("Depreciation Accruals", fontsize=16, fontweight="bold")
+    title_suffix = " (Absolute Values)" if show_absolute else ""
+    plt.suptitle(f"Depreciation Accruals{title_suffix}", fontsize=16, fontweight="bold")
     plt.tight_layout()
     plt.show()
 
