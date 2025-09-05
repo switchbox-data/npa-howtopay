@@ -2,7 +2,7 @@ import polars as pl
 import matplotlib.pyplot as plt
 
 
-def plot_revenue_requirements(plt_df: pl.DataFrame, scenario_colors: dict):
+def plot_revenue_requirements(plt_df: pl.DataFrame, scenario_colors: dict) -> None:
     """Utility Revenue Requirements - Faceted"""
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
 
@@ -51,7 +51,7 @@ def plot_revenue_requirements(plt_df: pl.DataFrame, scenario_colors: dict):
     plt.show()
 
 
-def plot_volumetric_tariff(plt_df: pl.DataFrame, scenario_colors: dict):
+def plot_volumetric_tariff(plt_df: pl.DataFrame, scenario_colors: dict) -> None:
     """Volumetric Tariff - Faceted"""
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
 
@@ -88,7 +88,7 @@ def plot_volumetric_tariff(plt_df: pl.DataFrame, scenario_colors: dict):
     plt.show()
 
 
-def plot_ratebase(plt_df: pl.DataFrame, scenario_colors: dict):
+def plot_ratebase(plt_df: pl.DataFrame, scenario_colors: dict) -> None:
     """Ratebase - Faceted"""
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
 
@@ -125,7 +125,7 @@ def plot_ratebase(plt_df: pl.DataFrame, scenario_colors: dict):
     plt.show()
 
 
-def plot_depreciation_accruals(plt_df: pl.DataFrame, scenario_colors: dict):
+def plot_depreciation_accruals(plt_df: pl.DataFrame, scenario_colors: dict) -> None:
     """Depreciation Accruals - Faceted"""
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
 
