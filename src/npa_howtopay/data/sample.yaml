@@ -7,10 +7,10 @@ gas:
   pipeline_depreciation_lifetime: 60  # depreciation lifetime for pipeline replacement
   non_lpp_depreciation_lifetime: 28  # depreciation lifetime for non-lpp gas capex
   gas_generation_cost_per_therm_init: 0.055  # cost per therm of natural gas, in initial year of model
-  num_users_init: 450  # initial number of gas users
-  per_user_heating_need_therms: 45.0  # household annual heating need in therms
+  num_users_init: 4.5e6  # initial number of gas users
+  per_user_heating_need_therms: 400.0  # household annual heating need in therms
   pipeline_maintenance_cost_pct: 0.022  # yearly opex as a perecent of existing ratebase value (not including npas)
-  ratebase_init: 900000.0 # intitial ratebase
+  ratebase_init: 30.0e9 # intitial ratebase
   ror: 0.08  # gas utility return on capital
 
 electric:
@@ -23,36 +23,36 @@ electric:
   electricity_generation_cost_per_kwh_init: 0.11 # cost per kwh of electricity generation (just the generation cost), in initial year of model
   hp_efficiency: 3 # hp heating efficiency
   hp_peak_kw: 4.5 # peak energy consumption of a household heat pump unit
-  num_users_init: 550 # initial number of electric users
-  per_user_electric_need_kwh: 35.0 # per user annual electricity need in kwh
-  ratebase_init: 2500000.0 # intitial ratebase
+  num_users_init: 5.5e6 # initial number of electric users
+  per_user_electric_need_kwh: 7.0e3 # per user annual electricity need in kwh
+  ratebase_init: 25.0e9 # intitial ratebase
   user_bill_fixed_cost_pct: 0.05 # percent of revenue requirement that is split evently among households as a fixed cost
   ror: 0.09 # electric utility return on capital
 
 shared:
   cost_inflation_rate: 0.03 # rate at which expenses grow from init value; applies to generation_costs, npa_install_costs, and grid upgrade costs
   discount_rate: 0.075 # discount rate for converting future revenue requirements and bills into today's dollars
-  npa_install_costs_init: 5500.0 # cost of installing one npa per household, in initial year of model
-  npa_lifetime: 18.0 # average lifetime of an installed npa
+  npa_install_costs_init: 15.0e3 # cost of installing one npa per household, in initial year of model
+  npa_lifetime: 15.0 # average lifetime of an installed npa
   start_year: 2025 # start year of model
 
 
 time_series:
   npa_projects:
     project_year: [2025, 2025, 2026, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039, 2040, 2041, 2042, 2043, 2044, 2045, 2046, 2047, 2048, 2049, 2050]
-    num_converts: [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
-    pipe_value_per_user: [1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0]
-    pipe_decomm_cost_per_user: [100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
+    num_converts: [1.0e3, 1.0e3, 1.0e3, 1.0e3, 1.0e3, 1.0e3, 1.0e3, 1.0e3, 1.0e3, 1.0e3, 1.0e3, 1.0e3, 1.0e3, 1.0e3, 1.0e3, 1.0e3, 1.0e3, 1.0e3, 1.0e3, 1.0e3, 1.0e3, 1.0e3, 1.0e3, 1.0e3, 1.0e3, 1.0e3, 1.0e3, 1.0e3]
+    pipe_value_per_user: [30.0e3, 30.0e3, 30.0e3, 30.0e3, 30.0e3, 30.0e3, 30.0e3, 30.0e3, 30.0e3, 30.0e3, 30.0e3, 30.0e3, 30.0e3, 30.0e3, 30.0e3, 30.0e3, 30.0e3, 30.0e3, 30.0e3, 30.0e3, 30.0e3, 30.0e3, 30.0e3, 30.0e3, 30.0e3, 30.0e3, 30.0e3, 30.0e3]
+    pipe_decomm_cost_per_user: [10.0e3, 10.0e3, 10.0e3, 10.0e3, 10.0e3, 10.0e3, 10.0e3, 10.0e3, 10.0e3, 10.0e3, 10.0e3, 10.0e3, 10.0e3, 10.0e3, 10.0e3, 10.0e3, 10.0e3, 10.0e3, 10.0e3, 10.0e3, 10.0e3, 10.0e3, 10.0e3, 10.0e3, 10.0e3, 10.0e3, 10.0e3, 10.0e3]
     peak_kw_winter_headroom: [10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0]
     peak_kw_summer_headroom: [10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0]
-    aircon_percent_adoption_pre_npa: [0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8]
+    aircon_percent_adoption_pre_npa: [0.8, 0.9, 1, 0.8, 0.9, 1, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8]
     is_scattershot: [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]
   gas_fixed_overhead_costs:
     year: [2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039, 2040, 2041, 2042, 2043, 2044, 2045, 2046, 2047, 2048, 2049, 2050]
-    cost: [100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
+    cost: [5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6]
   electric_fixed_overhead_costs:
     year: [2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039, 2040, 2041, 2042, 2043, 2044, 2045, 2046, 2047, 2048, 2049, 2050]
-    cost: [100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
+    cost: [5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6, 5.0e6]
   gas_bau_lpp_costs_per_year:
     year: [2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039, 2040, 2041, 2042, 2043, 2044, 2045, 2046, 2047, 2048, 2049, 2050]
-    cost: [100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
+    cost: [1.0e9, 1.0e9, 1.0e9, 1.0e9, 1.0e9, 1.0e9, 1.0e9, 1.0e9, 1.0e9, 1.0e9, 1.0e9, 1.0e9, 1.0e9, 1.0e9, 1.0e9, 1.0e9, 1.0e9, 1.0e9, 1.0e9, 1.0e9, 1.0e9, 1.0e9, 1.0e9, 1.0e9, 1.0e9, 1.0e9]
