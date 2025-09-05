@@ -1,7 +1,8 @@
 from attrs import define, field, validators
-from typing import Literal
+from typing import Literal, Optional
 import yaml
 import polars as pl
+from npa_howtopay.web_params import create_time_series_from_web_params, WebParams
 
 # from npa_project import NpaProject
 import os
@@ -116,6 +117,27 @@ def _load_params_from_yaml(yaml_path: str) -> InputParams:
     )
 
 
+def _load_time_series_params_from_yaml(yaml_path: str) -> TimeSeriesParams:
+    with open(yaml_path) as f:
+        config = yaml.safe_load(f)
+
+    return TimeSeriesParams(
+        npa_projects=pl.DataFrame(config["time_series"]["npa_projects"]),
+        gas_fixed_overhead_costs=pl.DataFrame(config["time_series"]["gas_fixed_overhead_costs"]),
+        electric_fixed_overhead_costs=pl.DataFrame(config["time_series"]["electric_fixed_overhead_costs"]),
+        gas_bau_lpp_costs_per_year=pl.DataFrame(config["time_series"]["gas_bau_lpp_costs_per_year"]),
+    )
+
+
+def get_available_runs(data_dir: str = "data") -> list[str]:
+    """Get list of available run_names from YAML files"""
+    import os
+    import glob
+
+    yaml_files = glob.glob(f"{data_dir}/*.yaml")
+    return [os.path.splitext(os.path.basename(f))[0] for f in yaml_files]
+
+
 def load_scenario_from_yaml(run_name: str, data_dir: str = "data") -> InputParams:
     """Load default parameters for a specific run_name from its YAML file"""
     from pathlib import Path
@@ -127,10 +149,26 @@ def load_scenario_from_yaml(run_name: str, data_dir: str = "data") -> InputParam
     return _load_params_from_yaml(str(yaml_path))
 
 
-def get_available_runs(data_dir: str = "data") -> list[str]:
-    """Get list of available run_names from YAML files"""
-    import os
-    import glob
+def load_time_series_params_from_yaml(run_name: str, data_dir: str = "data") -> TimeSeriesParams:
+    """Load time series parameters from YAML file"""
+    from pathlib import Path
 
-    yaml_files = glob.glob(f"{data_dir}/*.yaml")
-    return [os.path.splitext(os.path.basename(f))[0] for f in yaml_files]
+    # Get the package directory
+    package_dir = Path(__file__).parent
+    yaml_path = package_dir / data_dir / f"{run_name}.yaml"
+
+    return _load_time_series_params_from_yaml(str(yaml_path))
+
+
+def load_time_series_params_from_web_params(web_params: dict, start_year: int, end_year: int) -> TimeSeriesParams:
+    """Load time series parameters from web parameters (scalar values)"""
+
+    web_params_obj = WebParams(**web_params)
+    generated_data = create_time_series_from_web_params(web_params_obj, start_year, end_year)
+
+    return TimeSeriesParams(
+        npa_projects=generated_data["npa_projects"],
+        gas_fixed_overhead_costs=generated_data["gas_fixed_overhead_costs"],
+        electric_fixed_overhead_costs=generated_data["electric_fixed_overhead_costs"],
+        gas_bau_lpp_costs_per_year=generated_data["gas_bau_lpp_costs_per_year"],
+    )
