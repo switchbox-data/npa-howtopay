@@ -160,11 +160,13 @@ def load_time_series_params_from_yaml(run_name: str, data_dir: str = "data") -> 
     return _load_time_series_params_from_yaml(str(yaml_path))
 
 
-def load_time_series_params_from_web_params(web_params: dict, start_year: int, end_year: int) -> TimeSeriesParams:
+def load_time_series_params_from_web_params(
+    web_params: dict, start_year: int, end_year: int, cost_inflation_rate: float = 0.0
+) -> TimeSeriesParams:
     """Load time series parameters from web parameters (scalar values)"""
 
     web_params_obj = WebParams(**web_params)
-    generated_data = create_time_series_from_web_params(web_params_obj, start_year, end_year)
+    generated_data = create_time_series_from_web_params(web_params_obj, start_year, end_year, cost_inflation_rate)
 
     return TimeSeriesParams(
         npa_projects=generated_data["npa_projects"],
