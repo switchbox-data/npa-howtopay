@@ -16,7 +16,7 @@ from npa_howtopay.utils import (
     plot_volumetric_tariff,
     transform_to_long_format,
 )
-import matplotlib.pyplot as plt
+
 # Define Switchbox color palette
 switchbox_colors = {
     "gas_capex": "#A0AF12",  # sb-pistachio
@@ -56,8 +56,6 @@ if __name__ == "__main__":
     plot_volumetric_tariff(plt_df_absolute, switchbox_colors, show_absolute=True, save_dir="plots")
     plot_ratebase(plt_df_absolute, switchbox_colors, show_absolute=True, save_dir="plots")
     plot_depreciation_accruals(plt_df_absolute, switchbox_colors, show_absolute=True, save_dir="plots")
-
-
 
 
 # Method 2: Using web parameters (scalar values)
