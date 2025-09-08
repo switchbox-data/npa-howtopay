@@ -16,7 +16,7 @@ from npa_howtopay.utils import (
     plot_volumetric_tariff,
     transform_to_long_format,
 )
-
+import matplotlib.pyplot as plt
 # Define Switchbox color palette
 switchbox_colors = {
     "gas_capex": "#A0AF12",  # sb-pistachio
@@ -34,10 +34,10 @@ if __name__ == "__main__":
     # EDA plots
     # For delta values (original behavior)
     plt_df_delta = transform_to_long_format(delta_bau_df)
-    plot_revenue_requirements(plt_df_delta, switchbox_colors, show_absolute=False)
-    plot_volumetric_tariff(plt_df_delta, switchbox_colors, show_absolute=False)
-    plot_ratebase(plt_df_delta, switchbox_colors, show_absolute=False)
-    plot_depreciation_accruals(plt_df_delta, switchbox_colors, show_absolute=False)
+    plot_revenue_requirements(plt_df_delta, switchbox_colors, show_absolute=False, save_dir="plots")
+    plot_volumetric_tariff(plt_df_delta, switchbox_colors, show_absolute=False, save_dir="plots")
+    plot_ratebase(plt_df_delta, switchbox_colors, show_absolute=False, save_dir="plots")
+    plot_depreciation_accruals(plt_df_delta, switchbox_colors, show_absolute=False, save_dir="plots")
 
     # For absolute values - filter results_df to COMPARE_COLS and transform
     filtered_results = {}
@@ -52,10 +52,13 @@ if __name__ == "__main__":
         how="vertical",
     )
     plt_df_absolute = transform_to_long_format(combined_df)
-    plot_revenue_requirements(plt_df_absolute, switchbox_colors, show_absolute=True)
-    plot_volumetric_tariff(plt_df_absolute, switchbox_colors, show_absolute=True)
-    plot_ratebase(plt_df_absolute, switchbox_colors, show_absolute=True)
-    plot_depreciation_accruals(plt_df_absolute, switchbox_colors, show_absolute=True)
+    plot_revenue_requirements(plt_df_absolute, switchbox_colors, show_absolute=True, save_dir="plots")
+    plot_volumetric_tariff(plt_df_absolute, switchbox_colors, show_absolute=True, save_dir="plots")
+    plot_ratebase(plt_df_absolute, switchbox_colors, show_absolute=True, save_dir="plots")
+    plot_depreciation_accruals(plt_df_absolute, switchbox_colors, show_absolute=True, save_dir="plots")
+
+
+
 
 # Method 2: Using web parameters (scalar values)
 # web_params = {

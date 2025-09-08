@@ -2,7 +2,7 @@ import polars as pl
 import matplotlib.pyplot as plt
 
 
-def plot_revenue_requirements(plt_df: pl.DataFrame, scenario_colors: dict, show_absolute: bool = False) -> None:
+def plot_revenue_requirements(plt_df: pl.DataFrame, scenario_colors: dict, show_absolute: bool = False, save_dir: str = None) -> None:
     """Utility Revenue Requirements - Faceted"""
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
 
@@ -56,13 +56,19 @@ def plot_revenue_requirements(plt_df: pl.DataFrame, scenario_colors: dict, show_
     ax2.grid(True, alpha=0.3)
     ax2.legend()
 
-    title_suffix = " (Absolute Values)" if show_absolute else ""
+    title_suffix = " (Absolute Values)" if show_absolute else "(Delta from BAU)"
     plt.suptitle(f"Utility Revenue Requirements{title_suffix}", fontsize=16, fontweight="bold")
     plt.tight_layout()
+    
+    if save_dir:
+        value_type = "absolute" if show_absolute else "delta"
+        filename = f"revenue_requirements_{value_type}.png"
+        save_path = f"{save_dir}/{filename}"
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
     plt.show()
 
 
-def plot_volumetric_tariff(plt_df: pl.DataFrame, scenario_colors: dict, show_absolute: bool = False) -> None:
+def plot_volumetric_tariff(plt_df: pl.DataFrame, scenario_colors: dict, show_absolute: bool = False, save_dir: str = None) -> None:
     """Volumetric Tariff - Faceted"""
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
 
@@ -116,13 +122,19 @@ def plot_volumetric_tariff(plt_df: pl.DataFrame, scenario_colors: dict, show_abs
     ax2.grid(True, alpha=0.3)
     ax2.legend()
 
-    title_suffix = " (Absolute Values)" if show_absolute else ""
+    title_suffix = " (Absolute Values)" if show_absolute else "(Delta from BAU)"
     plt.suptitle(f"Volumetric Tariff{title_suffix}", fontsize=16, fontweight="bold")
     plt.tight_layout()
+    
+    if save_dir:
+        value_type = "absolute" if show_absolute else "delta"
+        filename = f"volumetric_tariff_{value_type}.png"
+        save_path = f"{save_dir}/{filename}"
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
     plt.show()
 
 
-def plot_ratebase(plt_df: pl.DataFrame, scenario_colors: dict, show_absolute: bool = False) -> None:
+def plot_ratebase(plt_df: pl.DataFrame, scenario_colors: dict, show_absolute: bool = False, save_dir: str = None) -> None:
     """Ratebase - Faceted"""
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
 
@@ -176,13 +188,19 @@ def plot_ratebase(plt_df: pl.DataFrame, scenario_colors: dict, show_absolute: bo
     ax2.grid(True, alpha=0.3)
     ax2.legend()
 
-    title_suffix = " (Absolute Values)" if show_absolute else ""
+    title_suffix = " (Absolute Values)" if show_absolute else "(Delta from BAU)"
     plt.suptitle(f"Ratebase{title_suffix}", fontsize=16, fontweight="bold")
     plt.tight_layout()
+    
+    if save_dir:
+        value_type = "absolute" if show_absolute else "delta"
+        filename = f"ratebase_{value_type}.png"
+        save_path = f"{save_dir}/{filename}"
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
     plt.show()
 
 
-def plot_depreciation_accruals(plt_df: pl.DataFrame, scenario_colors: dict, show_absolute: bool = False) -> None:
+def plot_depreciation_accruals(plt_df: pl.DataFrame, scenario_colors: dict, show_absolute: bool = False, save_dir: str = None) -> None:
     """Depreciation Accruals - Faceted"""
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
 
@@ -236,9 +254,15 @@ def plot_depreciation_accruals(plt_df: pl.DataFrame, scenario_colors: dict, show
     ax2.grid(True, alpha=0.3)
     ax2.legend()
 
-    title_suffix = " (Absolute Values)" if show_absolute else ""
+    title_suffix = " (Absolute Values)" if show_absolute else "(Delta from BAU)"
     plt.suptitle(f"Depreciation Accruals{title_suffix}", fontsize=16, fontweight="bold")
     plt.tight_layout()
+    
+    if save_dir:
+        value_type = "absolute" if show_absolute else "delta"
+        filename = f"depreciation_accruals_{value_type}.png"
+        save_path = f"{save_dir}/{filename}"
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
     plt.show()
 
 
