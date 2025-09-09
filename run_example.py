@@ -14,6 +14,9 @@ from npa_howtopay.utils import (
     plot_ratebase,
     plot_revenue_requirements,
     plot_volumetric_tariff,
+    plot_user_bills_converts,
+    plot_user_bills_nonconverts,
+    plot_total_bills,
     transform_to_long_format,
 )
 
@@ -38,7 +41,10 @@ if __name__ == "__main__":
     plot_volumetric_tariff(plt_df_delta, switchbox_colors, show_absolute=False, save_dir="plots")
     plot_ratebase(plt_df_delta, switchbox_colors, show_absolute=False, save_dir="plots")
     plot_depreciation_accruals(plt_df_delta, switchbox_colors, show_absolute=False, save_dir="plots")
-
+    plot_user_bills_converts(
+        plt_df_delta, switchbox_colors, show_absolute=False, save_dir="plots")
+    plot_user_bills_nonconverts(
+        plt_df_delta, switchbox_colors, show_absolute=False, save_dir="plots")
     # For absolute values - filter results_df to COMPARE_COLS and transform
     filtered_results = {}
     for scenario_name, scenario_df in results_df.items():
@@ -57,6 +63,10 @@ if __name__ == "__main__":
     plot_ratebase(plt_df_absolute, switchbox_colors, show_absolute=True, save_dir="plots")
     plot_depreciation_accruals(plt_df_absolute, switchbox_colors, show_absolute=True, save_dir="plots")
 
+    plot_user_bills_converts(plt_df_absolute, switchbox_colors, show_absolute=True, save_dir="plots")
+    plot_user_bills_nonconverts(plt_df_absolute, switchbox_colors, show_absolute=True, save_dir="plots")
+
+    plot_total_bills(delta_bau_df, switchbox_colors, save_dir="plots")
 
 # Method 2: Using web parameters (scalar values)
 # web_params = {
