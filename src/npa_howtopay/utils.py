@@ -4,17 +4,17 @@ from typing import Optional
 
 
 def plot_utility_metric(
-    plt_df: pl.DataFrame, 
-    column: str, 
-    title: str, 
-    y_label_unit: str = "$", 
-    scenario_colors: dict = None, 
-    show_absolute: bool = False, 
-    save_dir: Optional[str] = None
+    plt_df: pl.DataFrame,
+    column: str,
+    title: str,
+    y_label_unit: str = "$",
+    scenario_colors: Optional[dict] = None,
+    show_absolute: bool = False,
+    save_dir: Optional[str] = None,
 ) -> None:
     """
     Generic utility plotting function for faceted plots (Gas/Electric)
-    
+
     Args:
         plt_df: DataFrame with utility data in long format
         column: Column name to plot
@@ -26,7 +26,7 @@ def plot_utility_metric(
     """
     if scenario_colors is None:
         scenario_colors = {}
-    
+
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
 
     # Define line styles to cycle through
@@ -104,7 +104,7 @@ def plot_revenue_requirements(
         y_label_unit="$",
         scenario_colors=scenario_colors,
         show_absolute=show_absolute,
-        save_dir=save_dir
+        save_dir=save_dir,
     )
 
 
@@ -119,7 +119,7 @@ def plot_volumetric_tariff(
         y_label_unit="$/unit",
         scenario_colors=scenario_colors,
         show_absolute=show_absolute,
-        save_dir=save_dir
+        save_dir=save_dir,
     )
 
 
@@ -134,7 +134,7 @@ def plot_ratebase(
         y_label_unit="$",
         scenario_colors=scenario_colors,
         show_absolute=show_absolute,
-        save_dir=save_dir
+        save_dir=save_dir,
     )
 
 
@@ -149,8 +149,9 @@ def plot_depreciation_accruals(
         y_label_unit="$",
         scenario_colors=scenario_colors,
         show_absolute=show_absolute,
-        save_dir=save_dir
+        save_dir=save_dir,
     )
+
 
 def plot_user_bills_converts(
     plt_df: pl.DataFrame, scenario_colors: dict, show_absolute: bool = False, save_dir: Optional[str] = None
@@ -163,8 +164,9 @@ def plot_user_bills_converts(
         y_label_unit="$",
         scenario_colors=scenario_colors,
         show_absolute=show_absolute,
-        save_dir=save_dir
+        save_dir=save_dir,
     )
+
 
 def plot_user_bills_nonconverts(
     plt_df: pl.DataFrame, scenario_colors: dict, show_absolute: bool = False, save_dir: Optional[str] = None
@@ -177,13 +179,11 @@ def plot_user_bills_nonconverts(
         y_label_unit="$",
         scenario_colors=scenario_colors,
         show_absolute=show_absolute,
-        save_dir=save_dir
+        save_dir=save_dir,
     )
 
 
-def plot_total_bills(
-    delta_bau_df: pl.DataFrame, scenario_colors: dict, save_dir: Optional[str] = None
-) -> None:
+def plot_total_bills(delta_bau_df: pl.DataFrame, scenario_colors: dict, save_dir: Optional[str] = None) -> None:
     """Total Bills - Faceted"""
     if scenario_colors is None:
         scenario_colors = {}
@@ -245,7 +245,7 @@ def plot_total_bills(
     plt.tight_layout()
 
     if save_dir:
-        value_type =  "delta"
+        value_type = "delta"
         # Create filename from title (lowercase, replace spaces with underscores)
         filename_base = title.lower().replace(" ", "_")
         filename = f"{filename_base}_{value_type}.png"

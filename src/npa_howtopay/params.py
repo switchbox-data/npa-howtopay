@@ -32,7 +32,7 @@ COMPARE_COLS = [
     # depreciation expense
     "gas_depreciation_expense",
     "electric_depreciation_expense",
-    #total bills
+    # total bills
     "converts_total_bill_per_user",
     "nonconverts_total_bill_per_user",
 ]
