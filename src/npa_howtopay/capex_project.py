@@ -1,3 +1,5 @@
+from enum import Enum
+
 import numpy as np
 import polars as pl
 from attrs import define, field, validators
@@ -17,13 +19,31 @@ from .npa_project import (
 
 
 @define
+class ProjectType(Enum):
+    SYNTHETIC_INITIAL = "synthetic_initial"
+    MISC = "misc"
+    PIPELINE = "pipeline"
+    GRID_UPGRADE = "grid_upgrade"
+    NPA = "npa"
+
+    def __eq__(self, other):
+        if isinstance(other, str):
+            try:
+                return super().__eq__(self.__class__(other))
+            except ValueError:
+                return False
+        return super().__eq__(other)
+
+
+@define
 class CapexProject:
     project_year: int = field()
-    project_type: str = field(
-        validator=validators.in_(["synthetic_initial", "misc", "pipeline", "grid_upgrade", "npa"])
-    )
+    project_type: ProjectType = field(converter=ProjectType)
     original_cost: float = field(validator=validators.ge(0.0))
-    depreciation_lifetime: int = field(validator=validators.ge(1))
+    accumulated_depreciation: float = field(validator=validators.ge(0.0))
+    net_salvage_percent: float = field()
+    remaining_lifetime: int = field(validator=validators.ge(1))
+    # survival_curve: str = field(validator=validators.in_(["50-R2", "45-R2"]))
 
     def to_df(self) -> pl.DataFrame:
         return pl.DataFrame({
