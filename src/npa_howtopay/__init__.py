@@ -7,6 +7,7 @@ __email__ = "hello@switch.box"
 # Import and expose the main classes and functions
 from . import capex_project as cp
 from . import npa_project as npa
+from . import utils
 from .model import run_model
 from .params import (
     COMPARE_COLS,
@@ -33,4 +34,5 @@ __all__ = [
     "load_scenario_from_yaml",
     "npa",
     "run_model",
+    "utils",
 ]
