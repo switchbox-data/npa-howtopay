@@ -6,7 +6,7 @@ gas:
   default_depreciation_lifetime: 28  # depreciation lifetime for all projects, used for synthetic initial capex projects
   pipeline_depreciation_lifetime: 60  # depreciation lifetime for pipeline replacement
   non_lpp_depreciation_lifetime: 28  # depreciation lifetime for non-lpp gas capex
-  gas_generation_cost_per_therm_init: 0.055  # cost per therm of natural gas, in initial year of model
+  gas_generation_cost_per_therm_init: 3  # cost per therm of natural gas, in initial year of model
   num_users_init: 4.5e6  # initial number of gas users
   per_user_heating_need_therms: 400.0  # household annual heating need in therms
   pipeline_maintenance_cost_pct: 0.022  # yearly opex as a perecent of existing ratebase value (not including npas)
