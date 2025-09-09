@@ -4,9 +4,9 @@ import polars as pl
 
 from npa_howtopay.model import analyze_scenarios, create_scenario_runs
 from npa_howtopay.params import (
-    load_time_series_params_from_web_params,
     COMPARE_COLS,
     load_scenario_from_yaml,
+    load_time_series_params_from_web_params,
     load_time_series_params_from_yaml,
 )
 from npa_howtopay.utils import (
@@ -82,9 +82,7 @@ web_params = {
     "is_scattershot": False,
 }
 
-input_params2 = load_scenario_from_yaml(
-    "sample")  # Still load base params from YAML
-ts_params2 = load_time_series_params_from_web_params(
-    web_params, 2025, 2050)
+input_params2 = load_scenario_from_yaml("sample")  # Still load base params from YAML
+ts_params2 = load_time_series_params_from_web_params(web_params, 2025, 2050)
 
 out2 = analyze_scenarios(scenario_runs, input_params2, ts_params2)
