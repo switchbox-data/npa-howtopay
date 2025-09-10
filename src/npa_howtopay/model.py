@@ -331,29 +331,31 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, ts_par
     gas_npa_opex = 0.0
     electric_npa_opex = 0.0
 
-    gas_capex_projects = cp.return_empty_capex_df()
-    electric_capex_projects = cp.return_empty_capex_df()
-
     output_df = pl.DataFrame()
 
     # synthetic initial capex projects
-    gas_initial_capex_projects = cp.get_synthetic_initial_capex_projects(
-        start_year=input_params.shared.start_year,
-        initial_ratebase=gas_ratebase,
-        depreciation_lifetime=input_params.gas.default_depreciation_lifetime,
-    )
-    electric_initial_capex_projects = cp.get_synthetic_initial_capex_projects(
-        start_year=input_params.shared.start_year,
-        initial_ratebase=electric_ratebase,
-        depreciation_lifetime=input_params.electric.default_depreciation_lifetime,
-    )
+    if gas_ratebase > 0:
+        gas_capex_projects = cp.get_synthetic_initial_capex_projects(
+            start_year=input_params.shared.start_year,
+            initial_ratebase=gas_ratebase,
+            depreciation_lifetime=input_params.gas.default_depreciation_lifetime,
+        )
+    else:
+        gas_capex_projects = cp.return_empty_capex_df()
+    if electric_ratebase > 0:
+        electric_capex_projects = cp.get_synthetic_initial_capex_projects(
+            start_year=input_params.shared.start_year,
+            initial_ratebase=electric_ratebase,
+            depreciation_lifetime=input_params.electric.default_depreciation_lifetime,
+        )
+    else:
+        electric_capex_projects = cp.return_empty_capex_df()
 
     for year in range(scenario_params.start_year, scenario_params.end_year):
         # gas capex
         gas_capex_projects = pl.concat(
             [
                 gas_capex_projects,
-                gas_initial_capex_projects.filter(pl.col("project_year") == year),
                 cp.get_non_lpp_gas_capex_projects(
                     year=year,
                     current_ratebase=gas_ratebase,
@@ -374,7 +376,6 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, ts_par
         electric_capex_projects = pl.concat(
             [
                 electric_capex_projects,
-                electric_initial_capex_projects.filter(pl.col("project_year") == year),
                 cp.get_non_npa_electric_capex_projects(
                     year=year,
                     current_ratebase=electric_ratebase,
