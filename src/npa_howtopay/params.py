@@ -14,7 +14,6 @@ DATA_DIR = os.path.join(CURRENT_DIR, "data")
 KWH_PER_THERM = 29.3071
 
 COMPARE_COLS = [
-    "year",
     # revenue requirement
     "gas_inflation_adjusted_revenue_requirement",
     "electric_inflation_adjusted_revenue_requirement",
@@ -32,6 +31,9 @@ COMPARE_COLS = [
     # depreciation expense
     "gas_depreciation_expense",
     "electric_depreciation_expense",
+    # total bills
+    "converts_total_bill_per_user",
+    "nonconverts_total_bill_per_user",
 ]
 
 

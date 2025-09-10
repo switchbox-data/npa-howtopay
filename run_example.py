@@ -44,7 +44,8 @@ if __name__ == "__main__":
     for scenario_name, scenario_df in results_df.items():
         if scenario_name == "bau":
             continue  # Skip BAU for absolute value plotting
-        filtered_results[scenario_name] = scenario_df.select(COMPARE_COLS)
+        filtered_results[scenario_name] = scenario_df.select(
+            ['year'] + COMPARE_COLS)
 
     # Concatenate and transform to long format
     combined_df = pl.concat(
