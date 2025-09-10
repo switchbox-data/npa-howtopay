@@ -1,5 +1,6 @@
 from attrs import define
 import polars as pl
+from typing import Optional
 
 
 @define
@@ -32,34 +33,64 @@ def create_npa_projects(web_params: WebParams, start_year: int, end_year: int) -
     })
 
 
-def create_gas_fixed_overhead_costs(web_params: WebParams, start_year: int, end_year: int) -> pl.DataFrame:
+def create_gas_fixed_overhead_costs(
+    web_params: WebParams, start_year: int, end_year: int, cost_inflation_rate: float = 0.0
+) -> pl.DataFrame:
+    years = list(range(start_year, end_year + 1))
+    base_cost = web_params.gas_fixed_overhead_costs
+
+    # Apply compound inflation: cost * (1 + rate)^(year - start_year)
+    costs = [base_cost * (1 + cost_inflation_rate) ** (year - start_year) for year in years]
+
     return pl.DataFrame({
-        "year": list(range(start_year, end_year + 1)),
-        "cost": [web_params.gas_fixed_overhead_costs] * (end_year - start_year + 1),
+        "year": years,
+        "cost": costs,
     })
 
 
-def create_electric_fixed_overhead_costs(web_params: WebParams, start_year: int, end_year: int) -> pl.DataFrame:
+def create_electric_fixed_overhead_costs(
+    web_params: WebParams, start_year: int, end_year: int, cost_inflation_rate: float = 0.0
+) -> pl.DataFrame:
+    years = list(range(start_year, end_year + 1))
+    base_cost = web_params.electric_fixed_overhead_costs
+
+    # Apply compound inflation: cost * (1 + rate)^(year - start_year)
+    costs = [base_cost * (1 + cost_inflation_rate) ** (year - start_year) for year in years]
+
     return pl.DataFrame({
-        "year": list(range(start_year, end_year + 1)),
-        "cost": [web_params.electric_fixed_overhead_costs] * (end_year - start_year + 1),
+        "year": years,
+        "cost": costs,
     })
 
 
-def create_gas_bau_lpp_costs_per_year(web_params: WebParams, start_year: int, end_year: int) -> pl.DataFrame:
+def create_gas_bau_lpp_costs_per_year(
+    web_params: WebParams, start_year: int, end_year: int, cost_inflation_rate: float = 0.0
+) -> pl.DataFrame:
+    years = list(range(start_year, end_year + 1))
+    base_cost = web_params.gas_bau_lpp_costs_per_year
+
+    # Apply compound inflation: cost * (1 + rate)^(year - start_year)
+    costs = [base_cost * (1 + cost_inflation_rate) ** (year - start_year) for year in years]
+
     return pl.DataFrame({
-        "year": list(range(start_year, end_year + 1)),
-        "cost": [web_params.gas_bau_lpp_costs_per_year] * (end_year - start_year + 1),
+        "year": years,
+        "cost": costs,
     })
 
 
 def create_time_series_from_web_params(
-    web_params: WebParams, start_year: int, end_year: int
+    web_params: WebParams, start_year: int, end_year: int, cost_inflation_rate: float = 0.0
 ) -> dict[str, pl.DataFrame]:
     """Create all time series DataFrames from web parameters"""
     return {
         "npa_projects": create_npa_projects(web_params, start_year, end_year),
-        "gas_fixed_overhead_costs": create_gas_fixed_overhead_costs(web_params, start_year, end_year),
-        "electric_fixed_overhead_costs": create_electric_fixed_overhead_costs(web_params, start_year, end_year),
-        "gas_bau_lpp_costs_per_year": create_gas_bau_lpp_costs_per_year(web_params, start_year, end_year),
+        "gas_fixed_overhead_costs": create_gas_fixed_overhead_costs(
+            web_params, start_year, end_year, cost_inflation_rate
+        ),
+        "electric_fixed_overhead_costs": create_electric_fixed_overhead_costs(
+            web_params, start_year, end_year, cost_inflation_rate
+        ),
+        "gas_bau_lpp_costs_per_year": create_gas_bau_lpp_costs_per_year(
+            web_params, start_year, end_year, cost_inflation_rate
+        ),
     }
