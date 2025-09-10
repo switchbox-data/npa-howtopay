@@ -5,11 +5,11 @@ from typing import Optional
 
 # Define Switchbox color palette
 switchbox_colors = {
-    'gas_opex': '#A0AF12',  # sb-pistachio 
-    'gas_capex': '#546800',  # sb-pistachio-text
-    'electric_opex': '#68BED8',      # sb-sky
-    'electric_capex': '#023047',     # sb-midnight
-    'taxpayer': '#FC9706',  # sb-carrot
+    "gas_opex": "#A0AF12",  # sb-pistachio
+    "gas_capex": "#546800",  # sb-pistachio-text
+    "electric_opex": "#68BED8",  # sb-sky
+    "electric_capex": "#023047",  # sb-midnight
+    "taxpayer": "#FC9706",  # sb-carrot
 }
 
 line_styles = {
@@ -44,7 +44,6 @@ def plot_utility_metric(
         show_absolute: Whether to show absolute values or deltas
         save_dir: Directory to save the plot (optional)
     """
-
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
 
