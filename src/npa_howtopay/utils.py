@@ -3,12 +3,31 @@ import matplotlib.pyplot as plt
 from typing import Optional
 
 
+# Define Switchbox color palette
+switchbox_colors = {
+    "gas_opex": "#A0AF12",  # sb-pistachio
+    "gas_capex": "#546800",  # sb-pistachio-text
+    "electric_opex": "#68BED8",  # sb-sky
+    "electric_capex": "#023047",  # sb-midnight
+    "taxpayer": "#FC9706",  # sb-carrot
+}
+
+line_styles = {
+    "gas_opex": "--",
+    "gas_capex": "solid",
+    "electric_opex": "--",
+    "electric_capex": "solid",
+    "taxpayer": "solid",
+}
+
+
 def plot_utility_metric(
     plt_df: pl.DataFrame,
     column: str,
     title: str,
     y_label_unit: str = "$",
-    scenario_colors: Optional[dict] = None,
+    scenario_colors: dict = switchbox_colors,
+    scenario_line_styles: dict = line_styles,
     show_absolute: bool = False,
     save_dir: Optional[str] = None,
 ) -> None:
@@ -21,16 +40,16 @@ def plot_utility_metric(
         title: Title for the plot
         y_label_unit: Unit for y-axis label (e.g., "$", "$/unit", "$/kWh")
         scenario_colors: Dictionary mapping scenario_id to colors
+        scenario_line_styles: Dictionary mapping scenario_id to line styles
         show_absolute: Whether to show absolute values or deltas
         save_dir: Directory to save the plot (optional)
     """
     if scenario_colors is None:
-        scenario_colors = {}
+        scenario_colors = switchbox_colors
+    if scenario_line_styles is None:
+        scenario_line_styles = line_styles
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
-
-    # Define line styles to cycle through
-    line_styles = ["-", "--", "-.", ":", "-", "--", "-.", ":"]
 
     # Determine y-axis label based on show_absolute parameter
     y_label = f"Absolute Value ({y_label_unit})" if show_absolute else f"Delta ({y_label_unit})"
@@ -41,7 +60,7 @@ def plot_utility_metric(
 
     for i, scenario in enumerate(gas_data["scenario_id"].unique()):
         color = scenario_colors.get(scenario, "#666666")
-        linestyle = line_styles[i % len(line_styles)]
+        linestyle = scenario_line_styles.get(scenario, "solid")
         scenario_data = gas_data.filter(pl.col("scenario_id") == scenario)
         ax1.plot(
             scenario_data["year"],
@@ -63,7 +82,7 @@ def plot_utility_metric(
 
     for i, scenario in enumerate(electric_data["scenario_id"].unique()):
         color = scenario_colors.get(scenario, "#666666")
-        linestyle = line_styles[i % len(line_styles)]
+        linestyle = scenario_line_styles.get(scenario, "solid")
         scenario_data = electric_data.filter(pl.col("scenario_id") == scenario)
         ax2.plot(
             scenario_data["year"],
@@ -94,7 +113,11 @@ def plot_utility_metric(
 
 
 def plot_revenue_requirements(
-    plt_df: pl.DataFrame, scenario_colors: dict, show_absolute: bool = False, save_dir: Optional[str] = None
+    plt_df: pl.DataFrame,
+    scenario_colors: dict = switchbox_colors,
+    scenario_line_styles: dict = line_styles,
+    show_absolute: bool = False,
+    save_dir: Optional[str] = None,
 ) -> None:
     """Utility Revenue Requirements - Faceted"""
     plot_utility_metric(
@@ -102,14 +125,17 @@ def plot_revenue_requirements(
         column="inflation_adjusted_revenue_requirement",
         title="Utility Revenue Requirements",
         y_label_unit="$",
-        scenario_colors=scenario_colors,
         show_absolute=show_absolute,
         save_dir=save_dir,
     )
 
 
 def plot_volumetric_tariff(
-    plt_df: pl.DataFrame, scenario_colors: dict, show_absolute: bool = False, save_dir: Optional[str] = None
+    plt_df: pl.DataFrame,
+    scenario_colors: dict = switchbox_colors,
+    scenario_line_styles: dict = line_styles,
+    show_absolute: bool = False,
+    save_dir: Optional[str] = None,
 ) -> None:
     """Volumetric Tariff - Faceted"""
     plot_utility_metric(
@@ -117,14 +143,17 @@ def plot_volumetric_tariff(
         column="variable_cost",
         title="Volumetric Tariff",
         y_label_unit="$/unit",
-        scenario_colors=scenario_colors,
         show_absolute=show_absolute,
         save_dir=save_dir,
     )
 
 
 def plot_ratebase(
-    plt_df: pl.DataFrame, scenario_colors: dict, show_absolute: bool = False, save_dir: Optional[str] = None
+    plt_df: pl.DataFrame,
+    scenario_colors: dict = switchbox_colors,
+    scenario_line_styles: dict = line_styles,
+    show_absolute: bool = False,
+    save_dir: Optional[str] = None,
 ) -> None:
     """Ratebase - Faceted"""
     plot_utility_metric(
@@ -132,14 +161,17 @@ def plot_ratebase(
         column="ratebase",
         title="Ratebase",
         y_label_unit="$",
-        scenario_colors=scenario_colors,
         show_absolute=show_absolute,
         save_dir=save_dir,
     )
 
 
 def plot_depreciation_accruals(
-    plt_df: pl.DataFrame, scenario_colors: dict, show_absolute: bool = False, save_dir: Optional[str] = None
+    plt_df: pl.DataFrame,
+    scenario_colors: dict = switchbox_colors,
+    scenario_line_styles: dict = line_styles,
+    show_absolute: bool = False,
+    save_dir: Optional[str] = None,
 ) -> None:
     """Depreciation Accruals - Faceted"""
     plot_utility_metric(
@@ -147,14 +179,17 @@ def plot_depreciation_accruals(
         column="depreciation_expense",
         title="Depreciation Accruals",
         y_label_unit="$",
-        scenario_colors=scenario_colors,
         show_absolute=show_absolute,
         save_dir=save_dir,
     )
 
 
 def plot_user_bills_converts(
-    plt_df: pl.DataFrame, scenario_colors: dict, show_absolute: bool = False, save_dir: Optional[str] = None
+    plt_df: pl.DataFrame,
+    scenario_colors: dict = switchbox_colors,
+    scenario_line_styles: dict = line_styles,
+    show_absolute: bool = False,
+    save_dir: Optional[str] = None,
 ) -> None:
     """User Bills and Converts - Faceted"""
     plot_utility_metric(
@@ -162,14 +197,17 @@ def plot_user_bills_converts(
         column="converts_bill_per_user",
         title="User Bills and Converts",
         y_label_unit="$",
-        scenario_colors=scenario_colors,
         show_absolute=show_absolute,
         save_dir=save_dir,
     )
 
 
 def plot_user_bills_nonconverts(
-    plt_df: pl.DataFrame, scenario_colors: dict, show_absolute: bool = False, save_dir: Optional[str] = None
+    plt_df: pl.DataFrame,
+    scenario_colors: dict = switchbox_colors,
+    scenario_line_styles: dict = line_styles,
+    show_absolute: bool = False,
+    save_dir: Optional[str] = None,
 ) -> None:
     """User Bills and Nonconverts - Faceted"""
     plot_utility_metric(
@@ -177,32 +215,34 @@ def plot_user_bills_nonconverts(
         column="nonconverts_bill_per_user",
         title="User Bills and Nonconverts",
         y_label_unit="$",
-        scenario_colors=scenario_colors,
         show_absolute=show_absolute,
         save_dir=save_dir,
     )
 
 
-def plot_total_bills(delta_bau_df: pl.DataFrame, scenario_colors: dict, save_dir: Optional[str] = None) -> None:
+def plot_total_bills(
+    delta_bau_df: pl.DataFrame,
+    scenario_colors: dict = switchbox_colors,
+    scenario_line_styles: dict = line_styles,
+    save_dir: Optional[str] = None,
+) -> None:
     """Total Bills - Faceted"""
     if scenario_colors is None:
-        scenario_colors = {}
+        scenario_colors = switchbox_colors
+    if scenario_line_styles is None:
+        scenario_line_styles = line_styles
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
-
-    # Define line styles to cycle through
-    line_styles = ["-", "--", "-.", ":", "-", "--", "-.", ":"]
 
     # Determine y-axis label based on show_absolute parameter
     y_label = "User bills (total)"
 
     # Gas facet
     ax1.set_title("Converts", fontsize=14, fontweight="bold")
-    # gas_data = plt_df.filter(pl.col("utility_type") == "gas")
 
     for i, scenario in enumerate(delta_bau_df["scenario_id"].unique()):
         color = scenario_colors.get(scenario, "#666666")
-        linestyle = line_styles[i % len(line_styles)]
+        linestyle = scenario_line_styles.get(scenario, "solid")
         scenario_data = delta_bau_df.filter(pl.col("scenario_id") == scenario)
         ax1.plot(
             scenario_data["year"],
@@ -220,11 +260,10 @@ def plot_total_bills(delta_bau_df: pl.DataFrame, scenario_colors: dict, save_dir
 
     # Electric facet
     ax2.set_title("Nonconverts", fontsize=14, fontweight="bold")
-    # electric_data = plt_df.filter(pl.col("utility_type") == "electric")
 
     for i, scenario in enumerate(delta_bau_df["scenario_id"].unique()):
         color = scenario_colors.get(scenario, "#666666")
-        linestyle = line_styles[i % len(line_styles)]
+        linestyle = scenario_line_styles.get(scenario, "solid")
         scenario_data = delta_bau_df.filter(pl.col("scenario_id") == scenario)
         ax2.plot(
             scenario_data["year"],

@@ -20,15 +20,6 @@ from npa_howtopay.utils import (
     transform_to_long_format,
 )
 
-# Define Switchbox color palette
-switchbox_colors = {
-    "gas_capex": "#A0AF12",  # sb-pistachio
-    "gas_opex": "#546800",  # sb-pistachio-text
-    "electric_opex": "#68BED8",  # sb-sky
-    "electric_capex": "#023047",  # sb-midnight
-    "taxpayer": "#FC9706",  # sb-carrot
-}
-
 if __name__ == "__main__":
     scenario_runs = create_scenario_runs(2025, 2050, ["gas", "electric"], ["capex", "opex"])
     input_params = load_scenario_from_yaml("sample")
@@ -37,12 +28,12 @@ if __name__ == "__main__":
     # EDA plots
     # For delta values (original behavior)
     plt_df_delta = transform_to_long_format(delta_bau_df)
-    plot_revenue_requirements(plt_df_delta, switchbox_colors, show_absolute=False, save_dir="plots")
-    plot_volumetric_tariff(plt_df_delta, switchbox_colors, show_absolute=False, save_dir="plots")
-    plot_ratebase(plt_df_delta, switchbox_colors, show_absolute=False, save_dir="plots")
-    plot_depreciation_accruals(plt_df_delta, switchbox_colors, show_absolute=False, save_dir="plots")
-    plot_user_bills_converts(plt_df_delta, switchbox_colors, show_absolute=False, save_dir="plots")
-    plot_user_bills_nonconverts(plt_df_delta, switchbox_colors, show_absolute=False, save_dir="plots")
+    plot_revenue_requirements(plt_df_delta, show_absolute=False, save_dir="plots")
+    plot_volumetric_tariff(plt_df_delta, show_absolute=False, save_dir="plots")
+    plot_ratebase(plt_df_delta, show_absolute=False, save_dir="plots")
+    plot_depreciation_accruals(plt_df_delta, show_absolute=False, save_dir="plots")
+    plot_user_bills_converts(plt_df_delta, show_absolute=False, save_dir="plots")
+    plot_user_bills_nonconverts(plt_df_delta, show_absolute=False, save_dir="plots")
     # For absolute values - filter results_df to COMPARE_COLS and transform
     filtered_results = {}
     for scenario_name, scenario_df in results_df.items():
@@ -56,15 +47,15 @@ if __name__ == "__main__":
         how="vertical",
     )
     plt_df_absolute = transform_to_long_format(combined_df)
-    plot_revenue_requirements(plt_df_absolute, switchbox_colors, show_absolute=True, save_dir="plots")
-    plot_volumetric_tariff(plt_df_absolute, switchbox_colors, show_absolute=True, save_dir="plots")
-    plot_ratebase(plt_df_absolute, switchbox_colors, show_absolute=True, save_dir="plots")
-    plot_depreciation_accruals(plt_df_absolute, switchbox_colors, show_absolute=True, save_dir="plots")
+    plot_revenue_requirements(plt_df_absolute, show_absolute=True, save_dir="plots")
+    plot_volumetric_tariff(plt_df_absolute, show_absolute=True, save_dir="plots")
+    plot_ratebase(plt_df_absolute, show_absolute=True, save_dir="plots")
+    plot_depreciation_accruals(plt_df_absolute, show_absolute=True, save_dir="plots")
 
-    plot_user_bills_converts(plt_df_absolute, switchbox_colors, show_absolute=True, save_dir="plots")
-    plot_user_bills_nonconverts(plt_df_absolute, switchbox_colors, show_absolute=True, save_dir="plots")
+    plot_user_bills_converts(plt_df_absolute, show_absolute=True, save_dir="plots")
+    plot_user_bills_nonconverts(plt_df_absolute, show_absolute=True, save_dir="plots")
 
-    plot_total_bills(delta_bau_df, switchbox_colors, save_dir="plots")
+    plot_total_bills(delta_bau_df, save_dir="plots")
 
 # Method 2: Using web parameters (scalar values)
 web_params = {
