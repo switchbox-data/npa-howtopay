@@ -477,7 +477,7 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, ts_par
 
 
 def create_delta_bau_df(results_df: dict[str, pl.DataFrame], compare_cols: list[str]) -> pl.DataFrame:
-    bau_df = results_df["bau"].select(['year'] + compare_cols)
+    bau_df = results_df["bau"].select(["year"] + compare_cols)
 
     # Create comparison DataFrames for each scenario
     comparison_dfs = {}
@@ -487,9 +487,7 @@ def create_delta_bau_df(results_df: dict[str, pl.DataFrame], compare_cols: list[
 
         # Join with BAU to subtract values
         comparison_df = scenario_df.join(
-            bau_df.select(["year"] + [col for col in compare_cols]).rename({
-                col: f"bau_{col}" for col in compare_cols
-            }),
+            bau_df.select(["year"] + [col for col in compare_cols]).rename({col: f"bau_{col}" for col in compare_cols}),
             on="year",
         ).select(["year", *[pl.col(col).sub(pl.col(f"bau_{col}")) for col in compare_cols]])
 
