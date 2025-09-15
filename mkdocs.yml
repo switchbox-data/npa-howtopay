@@ -49,7 +49,7 @@ extra:
       link: https://github.com/switchbox-data/npa-howtopay
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/npa-howtopay
-  javascript:
+extra_javascript:
     - https://polyfill.io/v3/polyfill.min.js?features=es6
     - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
     - javascripts/mathjax-config.js
@@ -59,3 +59,8 @@ markdown_extensions:
       permalink: true
   - pymdownx.arithmatex:
       generic: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: math
+          class: math
+          format: pymdownx.arithmatex.fence_mathjax_format
