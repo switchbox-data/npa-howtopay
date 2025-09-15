@@ -132,25 +132,28 @@ def calculate_bill_per_user(inflation_adjusted_revenue: float, num_users: int) -
     return inflation_adjusted_revenue / num_users
 
 
-def calculate_electric_fixed_cost_per_user(
-    electric_infl_adj_revenue: float, electric_num_users: int, fixed_cost_pct: float
+def calculate_electric_fixed_cost_per_user( fixed_charge: float
 ) -> float:
     """Calculate electric fixed cost per user."""
-    return fixed_cost_pct * electric_infl_adj_revenue / electric_num_users
+    return fixed_charge
 
 
 def calculate_electric_variable_cost_per_kwh(
-    electric_infl_adj_revenue: float, total_electric_usage_kwh: float, fixed_cost_pct: float
+    electric_infl_adj_revenue: float, total_electric_usage_kwh: float, fixed_charge: float, num_users: int
 ) -> float:
     """Calculate electric variable cost per kWh."""
-    return (1 - fixed_cost_pct) * electric_infl_adj_revenue / total_electric_usage_kwh
+    return  (electric_infl_adj_revenue - num_users * fixed_charge)/ total_electric_usage_kwh
 
+def calculate_gas_fixed_cost_per_user( fixed_charge: float
+) -> float:
+    """Calculate gas fixed cost per user."""
+    return fixed_charge
 
 def calculate_gas_variable_cost_per_therm(
-    gas_infl_adj_revenue: float, total_gas_usage_therms: float, fixed_cost_pct: float = 0.0
+    gas_infl_adj_revenue: float, total_gas_usage_therms: float, fixed_charge: float = 0.0, num_users: int = 0.0,
 ) -> float:
     """Calculate electric variable cost per kWh."""
-    return (1 - fixed_cost_pct) * gas_infl_adj_revenue / total_gas_usage_therms
+    return (gas_infl_adj_revenue - num_users * fixed_charge)/ total_gas_usage_therms
 
 
 def calculate_converts_electric_bill_per_user(
@@ -232,7 +235,7 @@ def compute_bill_costs(
         pl.struct(["gas_inflation_adjusted_revenue_requirement", "total_gas_usage_therms"])
         .map_elements(
             lambda x: calculate_gas_variable_cost_per_therm(
-                x["gas_inflation_adjusted_revenue_requirement"], x["total_gas_usage_therms"]
+                x["gas_inflation_adjusted_revenue_requirement"], x["total_gas_usage_therms"], input_params.gas.user_bill_fixed_charge, input_params.gas.num_users_init
             ),
             return_dtype=pl.Float64,
         )
@@ -244,9 +247,7 @@ def compute_bill_costs(
         pl.struct(["electric_inflation_adjusted_revenue_requirement", "electric_num_users"])
         .map_elements(
             lambda x: calculate_electric_fixed_cost_per_user(
-                x["electric_inflation_adjusted_revenue_requirement"],
-                x["electric_num_users"],
-                input_params.electric.user_bill_fixed_cost_pct,
+                input_params.electric.user_bill_fixed_charge,
             ),
             return_dtype=pl.Float64,
         )
@@ -256,7 +257,8 @@ def compute_bill_costs(
             lambda x: calculate_electric_variable_cost_per_kwh(
                 x["electric_inflation_adjusted_revenue_requirement"],
                 x["total_electric_usage_kwh"],
-                input_params.electric.user_bill_fixed_cost_pct,
+                input_params.electric.user_bill_fixed_charge,
+                input_params.electric.num_users_init,
             ),
             return_dtype=pl.Float64,
         )

@@ -10,6 +10,7 @@ gas:
   num_users_init: 4.5e6  # initial number of gas users
   per_user_heating_need_therms: 400.0  # household annual heating need in therms
   pipeline_maintenance_cost_pct: 0.022  # yearly opex as a perecent of existing ratebase value (not including npas)
+  user_bill_fixed_charge: 120
   ratebase_init: 30.0e9 # intitial ratebase
   ror: 0.08  # gas utility return on capital
 
@@ -26,7 +27,7 @@ electric:
   num_users_init: 5.5e6 # initial number of electric users
   per_user_electric_need_kwh: 7.0e3 # per user annual electricity need in kwh
   ratebase_init: 25.0e9 # intitial ratebase
-  user_bill_fixed_cost_pct: 0.05 # percent of revenue requirement that is split evently among households as a fixed cost
+  user_bill_fixed_charge: 240 # annual fixed charge per customer ($)
   ror: 0.09 # electric utility return on capital
 
 shared:

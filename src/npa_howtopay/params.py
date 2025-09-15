@@ -49,6 +49,7 @@ class GasParams:
     pipeline_maintenance_cost_pct: float
     ratebase_init: float
     ror: float
+    user_bill_fixed_charge: float
     # passed down from SharedParams
     start_year: int = field(init=False)
     cost_inflation_rate: float = field(init=False)
@@ -65,7 +66,7 @@ class ElectricParams:
     distribution_cost_per_peak_kw_increase_init: float
     electric_maintenance_cost_pct: float
     electricity_generation_cost_per_kwh_init: float
-    user_bill_fixed_cost_pct: float = field(validator=validators.and_(validators.ge(0.0), validators.le(1.0)))
+    user_bill_fixed_charge: float 
     grid_upgrade_depreciation_lifetime: int
     hp_efficiency: float
     hp_peak_kw: float
