@@ -10,12 +10,17 @@ copyright: Maintained by <a href="https://switchbox-data.com">switchbox-data</a>
 nav:
   - Home: index.md
   - Modules: modules.md
+  - Formulas: formulas.md
 plugins:
   - search
   - mkdocstrings:
       handlers:
         python:
           paths: ["src/npa_howtopay"]
+          options:
+            show_source: true
+            show_root_heading: true
+            heading_level: 2
 theme:
   name: material
   feature:
@@ -44,6 +49,10 @@ extra:
       link: https://github.com/switchbox-data/npa-howtopay
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/npa-howtopay
+  javascript:
+    - https://polyfill.io/v3/polyfill.min.js?features=es6
+    - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+    - javascripts/mathjax-config.js
 
 markdown_extensions:
   - toc:
