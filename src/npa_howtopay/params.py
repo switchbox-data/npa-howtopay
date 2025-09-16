@@ -23,8 +23,8 @@ COMPARE_COLS = [
     "electric_nonconverts_bill_per_user",
     "electric_converts_bill_per_user",
     # volumetric rate
-    "gas_variable_cost_per_therm",
-    "electric_variable_cost_per_kwh",
+    "gas_variable_tariff_per_therm",
+    "electric_variable_tariff_per_kwh",
     # ratebase
     "gas_ratebase",
     "electric_ratebase",
@@ -66,7 +66,7 @@ class ElectricParams:
     distribution_cost_per_peak_kw_increase_init: float
     electric_maintenance_cost_pct: float
     electricity_generation_cost_per_kwh_init: float
-    user_bill_fixed_charge: float 
+    user_bill_fixed_charge: float
     grid_upgrade_depreciation_lifetime: int
     hp_efficiency: float
     hp_peak_kw: float
