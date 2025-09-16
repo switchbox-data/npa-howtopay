@@ -1,5 +1,5 @@
-## Switchbox
-## 2025-08-25
+# Switchbox
+# 2025-08-25
 
 import numpy as np
 import polars as pl
@@ -31,6 +31,7 @@ def test_get_synthetic_initial_capex_projects():
         "project_type": ["synthetic_initial", "synthetic_initial", "synthetic_initial"],
         "original_cost": [3000, 3000, 3000],
         "depreciation_lifetime": [3, 3, 3],
+        "retirement_year": [2026, 2027, 2028],
     })
     assert_frame_equal(ref_df, df, check_dtypes=False)
     assert np.isclose(compute_ratebase_from_capex_projects(start_year, df), initial_ratebase)
@@ -38,31 +39,41 @@ def test_get_synthetic_initial_capex_projects():
 
 def test_get_non_lpp_gas_capex_projects():
     df = get_non_lpp_gas_capex_projects(
-        year=2025, current_ratebase=1000, baseline_non_lpp_gas_ratebase_growth=0.015, depreciation_lifetime=60
+        year=2025,
+        current_ratebase=1000,
+        baseline_non_lpp_gas_ratebase_growth=0.015,
+        depreciation_lifetime=60,
+        construction_inflation_rate=0.02,
     )
     ref_df = pl.DataFrame({
         "project_year": [2025],
         "project_type": ["misc"],
-        "original_cost": [15],
+        "original_cost": [15.3],
         "depreciation_lifetime": [60],
+        "retirement_year": [2085],
     })
     assert_frame_equal(ref_df, df, check_dtypes=False)
 
 
 def test_get_non_npa_electric_capex_projects():
     df = get_non_npa_electric_capex_projects(
-        year=2025, current_ratebase=1000, baseline_electric_ratebase_growth=0.03, depreciation_lifetime=60
+        year=2025,
+        current_ratebase=1000,
+        baseline_electric_ratebase_growth=0.03,
+        depreciation_lifetime=60,
+        construction_inflation_rate=0.02,
     )
     ref_df = pl.DataFrame({
         "project_year": [2025],
         "project_type": ["misc"],
-        "original_cost": [30],
+        "original_cost": [30.6],
         "depreciation_lifetime": [60],
+        "retirement_year": [2085],
     })
     assert_frame_equal(ref_df, df, check_dtypes=False)
 
 
-## NPA TESTS
+# NPA TESTS
 @pytest.fixture
 def npa_projects():
     return pl.concat(
@@ -118,6 +129,7 @@ def test_get_lpp_gas_capex_projects(npa_projects):
         "project_type": ["pipeline"],
         "original_cost": [23000],
         "depreciation_lifetime": [60],
+        "retirement_year": [2085],
     })
     assert_frame_equal(ref_df, df, check_dtypes=False)
 
@@ -144,8 +156,10 @@ def test_get_grid_upgrade_capex_projects(npa_projects):
     ref_df = pl.DataFrame({
         "project_year": [2025],
         "project_type": ["grid_upgrade"],
-        "original_cost": [34000],  # three projects increase peak_kw by 14, 11, 9
+        # three projects increase peak_kw by 14, 11, 9
+        "original_cost": [34000],
         "depreciation_lifetime": [30],
+        "retirement_year": [2055],
     })
     assert_frame_equal(ref_df, df, check_dtypes=False)
 
@@ -157,15 +171,17 @@ def test_get_npa_capex_projects(npa_projects):
         "project_type": ["npa"],
         "original_cost": [35000],
         "depreciation_lifetime": [10],
+        "retirement_year": [2035],
     })
     assert_frame_equal(ref_df, df, check_dtypes=False)
 
 
-## COMPUTE TESTS
+# COMPUTE TESTS
 capex_df = pl.DataFrame({
     "project_year": [2025, 2026, 2027],
     "original_cost": [1000, 1000, 1000],
     "depreciation_lifetime": [10, 20, 10],
+    "retirement_year": [2035, 2045, 2035],
 })
 
 
