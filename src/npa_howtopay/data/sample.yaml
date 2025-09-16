@@ -34,6 +34,7 @@ electric:
 
 shared:
   cost_inflation_rate: 0.035 # rate at which expenses grow from init value; applies to generation_costs, npa_install_costs, and grid upgrade costs
+  construction_inflation_rate: 0.035 # rate at which construction expenses grow from init value; applies to non-lpp and grid upgrade capex projects
   discount_rate: 0.029 # discount rate for converting future revenue requirements and bills into today's dollars
   npa_install_costs_init: 15.0e3 # cost of installing one npa per household, in initial year of model
   npa_lifetime: 15.0 # average lifetime of an installed npa

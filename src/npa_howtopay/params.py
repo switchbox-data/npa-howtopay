@@ -94,6 +94,7 @@ class ElectricParams:
 @define
 class SharedParams:
     cost_inflation_rate: float
+    construction_inflation_rate: float
     discount_rate: float
     npa_install_costs_init: float
     npa_lifetime: float
