@@ -54,6 +54,9 @@ def plot_utility_metric(
     ax1.set_title("GAS", fontsize=14, fontweight="bold")
     gas_data = plt_df.filter(pl.col("utility_type") == "gas")
 
+    # Add horizontal line at y=0
+    ax1.axhline(y=0, color="#333333", linestyle="-", alpha=0.5)
+
     for i, scenario in enumerate(gas_data["scenario_id"].unique()):
         color = scenario_colors.get(scenario, "#666666")
         linestyle = scenario_line_styles.get(scenario, "solid")
@@ -75,6 +78,9 @@ def plot_utility_metric(
     # Electric facet
     ax2.set_title("ELECTRIC", fontsize=14, fontweight="bold")
     electric_data = plt_df.filter(pl.col("utility_type") == "electric")
+
+    # Add horizontal line at y=0
+    ax2.axhline(y=0, color="#333333", linestyle="-", alpha=0.5)
 
     for i, scenario in enumerate(electric_data["scenario_id"].unique()):
         color = scenario_colors.get(scenario, "#666666")
