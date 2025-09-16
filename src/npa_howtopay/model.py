@@ -126,63 +126,142 @@ def inflation_adjust_revenue_requirement(revenue_req: float, year: int, start_ye
         raise ValueError(f"Year {year} cannot be before start year {start_year}")
     return revenue_req / ((1 + discount_rate) ** (year - start_year))
 
+# Average bill per user
+def calculate_avg_bill_per_user(inflation_adjusted_revenue: float, num_users: int) -> float:
+    """Calculate the average bill per user by dividing total revenue by number of users.
 
-def calculate_bill_per_user(inflation_adjusted_revenue: float, num_users: int) -> float:
-    """Calculate per-user bill amount."""
+    Args:
+        inflation_adjusted_revenue: Total revenue adjusted for inflation
+        num_users: Total number of users to divide revenue among
+
+    Returns:
+        float: Average bill amount per user
+    """
     return inflation_adjusted_revenue / num_users
 
-
-def calculate_electric_fixed_cost_per_user( fixed_charge: float
+# Electric bills
+# Fixed charge per user
+def calculate_electric_fixed_charge_per_user( fixed_charge: float
 ) -> float:
-    """Calculate electric fixed cost per user."""
+    """Return electric fixed charge per user. Currently a user defined constant"""
     return fixed_charge
 
-
-def calculate_electric_variable_cost_per_kwh(
+# Volumetric bill per user
+def calculate_electric_variable_tariff_per_kwh(
     electric_infl_adj_revenue: float, total_electric_usage_kwh: float, fixed_charge: float, num_users: int
 ) -> float:
-    """Calculate electric variable cost per kWh."""
+    """Calculate electric variable cost per kWh.
+    
+    Args:
+        electric_infl_adj_revenue: Total electric revenue adjusted for inflation
+        total_electric_usage_kwh: Total electric usage in kWh
+        fixed_charge: Fixed charge per user
+        num_users: Number of users
+        
+    Returns:
+        float: Variable cost per kWh calculated by subtracting total fixed charges 
+              from revenue and dividing by total usage
+    """
     return  (electric_infl_adj_revenue - num_users * fixed_charge)/ total_electric_usage_kwh
 
-def calculate_gas_fixed_cost_per_user( fixed_charge: float
+def calculate_gas_fixed_charge_per_user( fixed_charge: float
 ) -> float:
-    """Calculate gas fixed cost per user."""
+    """Return gas fixed cost per user. Currently a user defined constant"""
     return fixed_charge
 
-def calculate_gas_variable_cost_per_therm(
+def calculate_gas_variable_tariff_per_therm(
     gas_infl_adj_revenue: float, total_gas_usage_therms: float, fixed_charge: float = 0.0, num_users: int = 0.0,
 ) -> float:
-    """Calculate electric variable cost per kWh."""
+    """Calculate gas variable cost per therm.
+    
+    Args:
+        gas_infl_adj_revenue: Total gas revenue adjusted for inflation
+        total_gas_usage_therms: Total gas usage in therms
+        fixed_charge: Fixed charge per user
+        num_users: Number of users
+        
+    Returns:
+        float: Variable cost per therm calculated by subtracting total fixed charges
+              from revenue and dividing by total usage
+    """
     return (gas_infl_adj_revenue - num_users * fixed_charge)/ total_gas_usage_therms
 
+def calculate_nonconverts_gas_bill_per_user( gas_fixed_charge: float, gas_variable_tariff: float, per_user_heating_need: float) -> float:
+    """Calculate gas bill per user for nonconverts.
+    
+    Args:
+        gas_fixed_charge: Fixed charge per user
+        gas_variable_tariff: Variable tariff per therm
+        per_user_heating_need: Heating need per user
+        
+    Returns:
+        float: Gas bill per user for nonconverts
+    """
+    return gas_fixed_charge + gas_variable_tariff * per_user_heating_need
 
 def calculate_converts_electric_bill_per_user(
-    electric_fixed_cost: float,
-    electric_variable_cost: float,
+    electric_fixed_charge: float,
+    electric_variable_tariff: float,
     per_user_electric_need: float,
     per_user_heating_need: float,
     hp_efficiency: float,
 ) -> float:
-    """Calculate electric bill per user for converts (includes heating)."""
-    return electric_fixed_cost + electric_variable_cost * (
-        per_user_electric_need + per_user_heating_need * KWH_PER_THERM / hp_efficiency
-    )
+    """Calculate electric bill per user for converts (includes heating).
+    
+    Args:
+        electric_fixed_charge: Fixed charge per user
+        electric_variable_tariff: Variable tariff per kWh
+        per_user_electric_need: Electric need per user
+        per_user_heating_need: Heating need per user
+        hp_efficiency: Heat pump efficiency
+        
+    Returns:
+        float: Electric bill per user for converts
+    """
+    return electric_fixed_charge + electric_variable_tariff * (
+        per_user_electric_need + per_user_heating_need * KWH_PER_THERM / hp_efficiency)
+    
 
 
 def calculate_nonconverts_electric_bill_per_user(
-    electric_fixed_cost: float, electric_variable_cost: float, per_user_electric_need: float
+    electric_fixed_charge: float, electric_variable_tariff: float, per_user_electric_need: float
 ) -> float:
-    """Calculate electric bill per user for nonconverts (no heating)."""
-    return electric_fixed_cost + electric_variable_cost * per_user_electric_need
+    """Calculate electric bill per user for nonconverts (no heating).
+    
+    Args:
+        electric_fixed_charge: Fixed charge per user
+        electric_variable_tariff: Variable tariff per kWh
+        per_user_electric_need: Electric need per user
+        
+    Returns:
+        float: Electric bill per user for nonconverts
+    """
+    return electric_fixed_charge + electric_variable_tariff * per_user_electric_need
 
-
+# Total Energy bills 
 def calculate_converts_total_bill_per_user(converts_gas_bill: float, converts_electric_bill: float) -> float:
-    """Calculate total bill per user for converts (gas + electric)."""
+    """Calculate total bill per user for converts (gas + electric).
+    
+    Args:
+        converts_gas_bill: Gas bill per user for converts
+        converts_electric_bill: Electric bill per user for converts
+        
+    Returns:
+        float: Total bill per user for converts
+    """
     return converts_gas_bill + converts_electric_bill
 
 
 def calculate_nonconverts_total_bill_per_user(nonconverts_gas_bill: float, nonconverts_electric_bill: float) -> float:
-    """Calculate total bill per user for nonconverts (gas + electric)."""
+    """Calculate total bill per user for nonconverts (gas + electric).
+    
+    Args:
+        nonconverts_gas_bill: Gas bill per user for nonconverts
+        nonconverts_electric_bill: Electric bill per user for nonconverts
+        
+    Returns:
+        float: Total bill per user for nonconverts
+    """
     return nonconverts_gas_bill + nonconverts_electric_bill
 
 
@@ -213,73 +292,66 @@ def compute_bill_costs(
         (pl.col("gas_revenue_requirement") + pl.col("electric_revenue_requirement")).alias("total_revenue_requirement"),
     ])
 
-    # Create per-user gas bill columns and total inflation adjusted revenue requirement
+    #Create gas and electric tariffs columns (and total inflation adjusted revenue requirement)
     df = df.with_columns([
         (
             pl.col("gas_inflation_adjusted_revenue_requirement")
             + pl.col("electric_inflation_adjusted_revenue_requirement")
-        ).alias("total_inflation_adjusted_revenue_requirement"),
-        pl.struct(["gas_inflation_adjusted_revenue_requirement", "gas_num_users"])
+        ).alias("total_inflation_adjusted_revenue_requirement"), 
+        pl.struct(["gas_inflation_adjusted_revenue_requirement", "total_gas_usage_therms"])
         .map_elements(
-            lambda x: calculate_bill_per_user(x["gas_inflation_adjusted_revenue_requirement"], x["gas_num_users"]),
+            lambda x: calculate_gas_variable_tariff_per_therm(x["gas_inflation_adjusted_revenue_requirement"], x["total_gas_usage_therms"], input_params.gas.user_bill_fixed_charge, input_params.gas.num_users_init),
             return_dtype=pl.Float64,
         )
-        .alias("gas_bill_per_user"),
+        .alias("gas_variable_tariff_per_therm"),
+        pl.struct(["electric_inflation_adjusted_revenue_requirement", "total_electric_usage_kwh"])
+        .map_elements(
+            lambda x: calculate_electric_variable_tariff_per_kwh(x["electric_inflation_adjusted_revenue_requirement"], x["total_electric_usage_kwh"], input_params.electric.user_bill_fixed_charge, input_params.electric.num_users_init),
+            return_dtype=pl.Float64,
+        )
+        .alias("electric_variable_tariff_per_kwh"),
+        pl.lit(calculate_electric_fixed_charge_per_user(
+            input_params.electric.user_bill_fixed_charge,
+        )).alias("electric_fixed_charge_per_user"),
+        pl.lit(calculate_gas_fixed_charge_per_user(
+            input_params.gas.user_bill_fixed_charge,
+        )).alias("gas_fixed_charge_per_user"),
+    ])
+
+    # Create per-user gas bill columns and total inflation adjusted revenue requirement
+    df = df.with_columns([
         pl.struct(["gas_inflation_adjusted_revenue_requirement", "gas_num_users"])
         .map_elements(
-            lambda x: calculate_bill_per_user(x["gas_inflation_adjusted_revenue_requirement"], x["gas_num_users"]),
+            lambda x: calculate_avg_bill_per_user(x["gas_inflation_adjusted_revenue_requirement"], x["gas_num_users"]),
+            return_dtype=pl.Float64,
+        )
+        .alias("gas_avg_bill_per_user"),
+        pl.struct(["gas_inflation_adjusted_revenue_requirement", "gas_num_users"])
+        .map_elements(
+            lambda x: calculate_nonconverts_gas_bill_per_user(
+                x["gas_fixed_charge_per_user"], x["gas_variable_tariff_per_therm"], input_params.gas.per_user_heating_need_therms),
             return_dtype=pl.Float64,
         )
         .alias("gas_nonconverts_bill_per_user"),
-        pl.lit(0.0).alias("gas_converts_bill_per_user"),
-        pl.struct(["gas_inflation_adjusted_revenue_requirement", "total_gas_usage_therms"])
-        .map_elements(
-            lambda x: calculate_gas_variable_cost_per_therm(
-                x["gas_inflation_adjusted_revenue_requirement"], x["total_gas_usage_therms"], input_params.gas.user_bill_fixed_charge, input_params.gas.num_users_init
-            ),
-            return_dtype=pl.Float64,
-        )
-        .alias("gas_variable_cost_per_therm"),
+        pl.lit(0.0).alias("gas_converts_bill_per_user")
     ])
 
-    # Create electric cost calculations
-    df = df.with_columns([
-        pl.struct(["electric_inflation_adjusted_revenue_requirement", "electric_num_users"])
-        .map_elements(
-            lambda x: calculate_electric_fixed_cost_per_user(
-                input_params.electric.user_bill_fixed_charge,
-            ),
-            return_dtype=pl.Float64,
-        )
-        .alias("electric_fixed_cost_per_user"),
-        pl.struct(["electric_inflation_adjusted_revenue_requirement", "total_electric_usage_kwh"])
-        .map_elements(
-            lambda x: calculate_electric_variable_cost_per_kwh(
-                x["electric_inflation_adjusted_revenue_requirement"],
-                x["total_electric_usage_kwh"],
-                input_params.electric.user_bill_fixed_charge,
-                input_params.electric.num_users_init,
-            ),
-            return_dtype=pl.Float64,
-        )
-        .alias("electric_variable_cost_per_kwh"),
-    ])
 
     # Create converts and nonconverts electric bills
     df = df.with_columns([
         pl.struct(["electric_inflation_adjusted_revenue_requirement", "electric_num_users"])
         .map_elements(
-            lambda x: calculate_bill_per_user(
+            lambda x: calculate_avg_bill_per_user(
                 x["electric_inflation_adjusted_revenue_requirement"], x["electric_num_users"]
             ),
             return_dtype=pl.Float64,
         )
-        .alias("electric_bill_per_user"),
-        pl.struct(["electric_fixed_cost_per_user", "electric_variable_cost_per_kwh"])
+        .alias("electric_avg_bill_per_user"),
+        pl.struct(["electric_fixed_charge_per_user", "electric_variable_tariff_per_kwh"])
         .map_elements(
             lambda x: calculate_converts_electric_bill_per_user(
-                x["electric_fixed_cost_per_user"],
-                x["electric_variable_cost_per_kwh"],
+                x["electric_fixed_charge_per_user"],
+                x["electric_variable_tariff_per_kwh"],
                 input_params.electric.per_user_electric_need_kwh,
                 input_params.gas.per_user_heating_need_therms,
                 input_params.electric.hp_efficiency,
@@ -287,11 +359,11 @@ def compute_bill_costs(
             return_dtype=pl.Float64,
         )
         .alias("electric_converts_bill_per_user"),
-        pl.struct(["electric_fixed_cost_per_user", "electric_variable_cost_per_kwh"])
+        pl.struct(["electric_fixed_charge_per_user", "electric_variable_tariff_per_kwh"])
         .map_elements(
             lambda x: calculate_nonconverts_electric_bill_per_user(
-                x["electric_fixed_cost_per_user"],
-                x["electric_variable_cost_per_kwh"],
+                x["electric_fixed_charge_per_user"],
+                x["electric_variable_tariff_per_kwh"],
                 input_params.electric.per_user_electric_need_kwh,
             ),
             return_dtype=pl.Float64,
@@ -299,7 +371,7 @@ def compute_bill_costs(
         .alias("electric_nonconverts_bill_per_user"),
     ])
 
-    # Create total bill calculations
+    # Create total bill calculations for converts and nonconverts
     df = df.with_columns([
         pl.struct(["gas_converts_bill_per_user", "electric_converts_bill_per_user"])
         .map_elements(
