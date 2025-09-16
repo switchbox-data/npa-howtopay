@@ -143,12 +143,17 @@ def compute_intermediate_cols_electric(
         context.year, ts_params.npa_projects, cumulative=True, npa_only=False
     )
     electric_num_users = input_params.electric.num_users_init
-    total_usage = input_params.electric.num_users_init * input_params.electric.per_user_electric_need_kwh + (
+    added_usage = (
         total_converts_cumul
         * input_params.gas.per_user_heating_need_therms
         * KWH_PER_THERM
         / input_params.electric.hp_efficiency
+        + total_converts_cumul
+        * input_params.gas.per_user_water_heating_need_therms
+        * KWH_PER_THERM
+        / input_params.electric.water_heater_efficiency
     )
+    total_usage = input_params.electric.num_users_init * input_params.electric.per_user_electric_need_kwh + added_usage
     costs_volumetric = total_usage * input_params.electric.electricity_generation_cost_per_kwh(context.year)
     costs_fixed = electric_fixed_overhead_costs + context.electric_maintenance_cost + context.electric_npa_opex
     opex_costs = costs_fixed + costs_volumetric
@@ -160,6 +165,7 @@ def compute_intermediate_cols_electric(
         "year": [context.year],
         "electric_num_users": [electric_num_users],
         "total_converts_cumul": [total_converts_cumul],
+        "electric_added_usage_kwh": [added_usage],
         "total_electric_usage_kwh": [total_usage],
         "electric_costs_volumetric": [costs_volumetric],
         "electric_costs_fixed": [costs_fixed],
@@ -263,7 +269,9 @@ def calculate_converts_electric_bill_per_user(
     electric_variable_tariff: float,
     per_user_electric_need: float,
     per_user_heating_need: float,
+    per_user_water_heating_need: float,
     hp_efficiency: float,
+    water_heater_efficiency: float,
 ) -> float:
     """Calculate electric bill per user for converts (includes heating).
 
@@ -271,15 +279,19 @@ def calculate_converts_electric_bill_per_user(
         electric_fixed_charge: Fixed charge per user
         electric_variable_tariff: Variable tariff per kWh
         per_user_electric_need: Electric need per user
-        per_user_heating_need: Heating need per user
+        per_user_heating_need: Heating need per user (therms)
+        per_user_water_heating_need: Water heating need per user (therms)
         hp_efficiency: Heat pump efficiency
+        water_heater_efficiency: Water heater efficiency
 
     Returns:
         float: Electric bill per user for converts
     """
-    return electric_fixed_charge + electric_variable_tariff * (
-        per_user_electric_need + per_user_heating_need * KWH_PER_THERM / hp_efficiency
+    add_on_usage = (
+        per_user_heating_need * KWH_PER_THERM / hp_efficiency
+        + per_user_water_heating_need * KWH_PER_THERM / water_heater_efficiency
     )
+    return electric_fixed_charge + electric_variable_tariff * (per_user_electric_need + add_on_usage)
 
 
 def calculate_nonconverts_electric_bill_per_user(
@@ -445,7 +457,9 @@ def compute_bill_costs(
                 x["electric_variable_tariff_per_kwh"],
                 input_params.electric.per_user_electric_need_kwh,
                 input_params.gas.per_user_heating_need_therms,
+                input_params.gas.per_user_water_heating_need_therms,
                 input_params.electric.hp_efficiency,
+                input_params.electric.water_heater_efficiency,
             ),
             return_dtype=pl.Float64,
         )
