@@ -221,3 +221,4 @@ outputs/
 # Explicitly include everything in docs directory
 !docs/
 !docs/**/*
+docs/.DS_Store
