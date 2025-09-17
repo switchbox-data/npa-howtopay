@@ -54,6 +54,9 @@ def plot_utility_metric(
     ax1.set_title("GAS", fontsize=14, fontweight="bold")
     gas_data = plt_df.filter(pl.col("utility_type") == "gas")
 
+    # Add horizontal line at y=0
+    ax1.axhline(y=0, color="#333333", linestyle="-", alpha=0.5)
+
     for i, scenario in enumerate(gas_data["scenario_id"].unique()):
         color = scenario_colors.get(scenario, "#666666")
         linestyle = scenario_line_styles.get(scenario, "solid")
@@ -75,6 +78,9 @@ def plot_utility_metric(
     # Electric facet
     ax2.set_title("ELECTRIC", fontsize=14, fontweight="bold")
     electric_data = plt_df.filter(pl.col("utility_type") == "electric")
+
+    # Add horizontal line at y=0
+    ax2.axhline(y=0, color="#333333", linestyle="-", alpha=0.5)
 
     for i, scenario in enumerate(electric_data["scenario_id"].unique()):
         color = scenario_colors.get(scenario, "#666666")
@@ -136,7 +142,7 @@ def plot_volumetric_tariff(
     """Volumetric Tariff - Faceted"""
     plot_utility_metric(
         plt_df=plt_df,
-        column="variable_cost",
+        column="variable_tariff",
         title="Volumetric Tariff",
         y_label_unit="$/unit",
         show_absolute=show_absolute,
@@ -290,7 +296,18 @@ def plot_total_bills(
 
 
 def transform_to_long_format(delta_bau_df: pl.DataFrame) -> pl.DataFrame:
-    """Transform wide format (gas_/electric_ prefixes) to long format with utility_type column"""
+    """Transform wide format DataFrame to long format with utility_type column.
+
+    Takes a DataFrame with gas_ and electric_ prefixed columns and transforms it into long format
+    by separating gas and electric metrics into separate rows with a utility_type column.
+    Special handling is done for variable tariff columns to standardize their names.
+
+    Args:
+        delta_bau_df (pl.DataFrame): Input DataFrame in wide format with gas_/electric_ prefixed columns
+
+    Returns:
+        pl.DataFrame: Transformed DataFrame in long format with utility_type and scenario_id columns and standardized metric names
+    """
 
     # Get all columns except year and scenario_id
     metric_cols = [col for col in delta_bau_df.columns if col not in ["year", "scenario_id"]]
@@ -307,18 +324,18 @@ def transform_to_long_format(delta_bau_df: pl.DataFrame) -> pl.DataFrame:
     gas_rename_map = {}
     for col in gas_cols:
         base_col = col.replace("gas_", "")
-        # Special case: map both variable cost columns to "variable_cost"
-        if base_col == "variable_cost_per_therm":
-            gas_rename_map[col] = "variable_cost"
+        # Special case: map both variable tariff columns to "variable_tariff"
+        if base_col == "variable_tariff_per_therm":
+            gas_rename_map[col] = "variable_tariff"
         else:
             gas_rename_map[col] = base_col
 
     electric_rename_map = {}
     for col in electric_cols:
         base_col = col.replace("electric_", "")
-        # Special case: map both variable cost columns to "variable_cost"
-        if base_col == "variable_cost_per_kwh":
-            electric_rename_map[col] = "variable_cost"
+        # Special case: map both variable tariff columns to "variable_tariff"
+        if base_col == "variable_tariff_per_kwh":
+            electric_rename_map[col] = "variable_tariff"
         else:
             electric_rename_map[col] = base_col
 

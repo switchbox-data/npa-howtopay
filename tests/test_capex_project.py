@@ -31,6 +31,7 @@ def test_get_synthetic_initial_capex_projects():
         "project_type": ["synthetic_initial", "synthetic_initial", "synthetic_initial"],
         "original_cost": [3000, 3000, 3000],
         "depreciation_lifetime": [3, 3, 3],
+        "retirement_year": [2026, 2027, 2028],
     })
     assert_frame_equal(ref_df, df, check_dtypes=False)
     assert np.isclose(compute_ratebase_from_capex_projects(start_year, df), initial_ratebase)
@@ -45,6 +46,7 @@ def test_get_non_lpp_gas_capex_projects():
         "project_type": ["misc"],
         "original_cost": [15],
         "depreciation_lifetime": [60],
+        "retirement_year": [2085],
     })
     assert_frame_equal(ref_df, df, check_dtypes=False)
 
@@ -58,6 +60,7 @@ def test_get_non_npa_electric_capex_projects():
         "project_type": ["misc"],
         "original_cost": [30],
         "depreciation_lifetime": [60],
+        "retirement_year": [2085],
     })
     assert_frame_equal(ref_df, df, check_dtypes=False)
 
@@ -118,6 +121,7 @@ def test_get_lpp_gas_capex_projects(npa_projects):
         "project_type": ["pipeline"],
         "original_cost": [23000],
         "depreciation_lifetime": [60],
+        "retirement_year": [2085],
     })
     assert_frame_equal(ref_df, df, check_dtypes=False)
 
@@ -146,6 +150,7 @@ def test_get_grid_upgrade_capex_projects(npa_projects):
         "project_type": ["grid_upgrade"],
         "original_cost": [34000],  # three projects increase peak_kw by 14, 11, 9
         "depreciation_lifetime": [30],
+        "retirement_year": [2055],
     })
     assert_frame_equal(ref_df, df, check_dtypes=False)
 
@@ -157,6 +162,7 @@ def test_get_npa_capex_projects(npa_projects):
         "project_type": ["npa"],
         "original_cost": [35000],
         "depreciation_lifetime": [10],
+        "retirement_year": [2035],
     })
     assert_frame_equal(ref_df, df, check_dtypes=False)
 
@@ -166,6 +172,7 @@ capex_df = pl.DataFrame({
     "project_year": [2025, 2026, 2027],
     "original_cost": [1000, 1000, 1000],
     "depreciation_lifetime": [10, 20, 10],
+    "retirement_year": [2035, 2045, 2035],
 })
 
 

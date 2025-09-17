@@ -23,8 +23,8 @@ COMPARE_COLS = [
     "electric_nonconverts_bill_per_user",
     "electric_converts_bill_per_user",
     # volumetric rate
-    "gas_variable_cost_per_therm",
-    "electric_variable_cost_per_kwh",
+    "gas_variable_tariff_per_therm",
+    "electric_variable_tariff_per_kwh",
     # ratebase
     "gas_ratebase",
     "electric_ratebase",
@@ -46,9 +46,11 @@ class GasParams:
     gas_generation_cost_per_therm_init: float
     num_users_init: int
     per_user_heating_need_therms: float
+    per_user_water_heating_need_therms: float
     pipeline_maintenance_cost_pct: float
     ratebase_init: float
     ror: float
+    user_bill_fixed_charge: float
     # passed down from SharedParams
     start_year: int = field(init=False)
     cost_inflation_rate: float = field(init=False)
@@ -65,8 +67,9 @@ class ElectricParams:
     distribution_cost_per_peak_kw_increase_init: float
     electric_maintenance_cost_pct: float
     electricity_generation_cost_per_kwh_init: float
-    user_bill_fixed_cost_pct: float = field(validator=validators.and_(validators.ge(0.0), validators.le(1.0)))
+    user_bill_fixed_charge: float
     grid_upgrade_depreciation_lifetime: int
+    water_heater_efficiency: float
     hp_efficiency: float
     hp_peak_kw: float
     num_users_init: int
@@ -91,6 +94,7 @@ class ElectricParams:
 @define
 class SharedParams:
     cost_inflation_rate: float
+    construction_inflation_rate: float
     discount_rate: float
     npa_install_costs_init: float
     npa_lifetime: float
