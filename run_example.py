@@ -66,7 +66,7 @@ web_params = {
     "peak_kw_winter_headroom": 10.0,
     "peak_kw_summer_headroom": 10.0,
     "aircon_percent_adoption_pre_npa": 0.8,
-    "non_npa_scattershot_electrifiction_users_per_year": 5,
+    "scattershot_electrification_users_per_year": 5,
     "gas_fixed_overhead_costs": 100.0,
     "electric_fixed_overhead_costs": 100.0,
     "gas_bau_lpp_costs_per_year": 100.0,
