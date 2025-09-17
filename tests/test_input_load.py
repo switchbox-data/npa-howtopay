@@ -1,3 +1,4 @@
+import numpy as np
 import polars as pl
 import pytest
 from polars.testing import assert_frame_equal
@@ -20,7 +21,7 @@ def web_params():
         "peak_kw_winter_headroom": 10.0,
         "peak_kw_summer_headroom": 10.0,
         "aircon_percent_adoption_pre_npa": 0.8,
-        "non_npa_scattershot_electrifiction_users_per_year": 5,
+        "scattershot_electrification_users_per_year": 5,
         "gas_fixed_overhead_costs": 100.0,
         "electric_fixed_overhead_costs": 100.0,
         "gas_bau_lpp_costs_per_year": 100.0,
@@ -86,14 +87,14 @@ def expected_electric_fixed_overhead_costs_with_inflation():
 def expected_npa_projects():
     """Expected NPA projects for 2025-2030"""
     return pl.DataFrame({
-        "project_year": [2025, 2026, 2027, 2028, 2029, 2030],
-        "num_converts": [100, 100, 100, 100, 100, 100],
-        "pipe_value_per_user": [1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0],
-        "pipe_decomm_cost_per_user": [100.0, 100.0, 100.0, 100.0, 100.0, 100.0],
-        "peak_kw_winter_headroom": [10.0, 10.0, 10.0, 10.0, 10.0, 10.0],
-        "peak_kw_summer_headroom": [10.0, 10.0, 10.0, 10.0, 10.0, 10.0],
-        "aircon_percent_adoption_pre_npa": [0.8, 0.8, 0.8, 0.8, 0.8, 0.8],
-        "is_scattershot": [False, False, False, False, False, False],
+        "project_year": [2025, 2026, 2027, 2028, 2029, 2030, 2025, 2026, 2027, 2028, 2029, 2030],
+        "num_converts": [100, 100, 100, 100, 100, 100, 5, 5, 5, 5, 5, 5],
+        "pipe_value_per_user": [1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "pipe_decomm_cost_per_user": [100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "peak_kw_winter_headroom": [10.0, 10.0, 10.0, 10.0, 10.0, 10.0, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf],
+        "peak_kw_summer_headroom": [10.0, 10.0, 10.0, 10.0, 10.0, 10.0, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf],
+        "aircon_percent_adoption_pre_npa": [0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "is_scattershot": [False, False, False, False, False, False, True, True, True, True, True, True],
     })
 
 
@@ -174,7 +175,8 @@ def test_load_time_series_params_from_yaml():
     assert set(params.electric_fixed_overhead_costs.columns) == {"year", "cost"}
 
     # Verify npa_projects df has correct shape and columns
-    assert params.npa_projects.shape == (28, 8)
+    # 28 rows from npa_projects + 26 rows from scattershot_electrification = 54 total rows
+    assert params.npa_projects.shape == (54, 8)
     assert set(params.npa_projects.columns) == {
         "project_year",
         "num_converts",
