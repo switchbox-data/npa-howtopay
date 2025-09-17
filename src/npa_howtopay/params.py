@@ -31,6 +31,9 @@ COMPARE_COLS = [
     # depreciation expense
     "gas_depreciation_expense",
     "electric_depreciation_expense",
+    # return on ratebase
+    "gas_return_on_ratebase_pct",
+    "electric_return_on_ratebase_pct",
     # total bills
     "converts_total_bill_per_user",
     "nonconverts_total_bill_per_user",
