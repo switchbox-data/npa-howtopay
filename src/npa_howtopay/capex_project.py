@@ -41,9 +41,7 @@ def get_synthetic_initial_capex_projects(
     """
     Generate synthetic capex projects to represent the projects that make up the initial ratebase.
 
-    Creates a series of historical capex projects that would result in the given initial ratebase value,
-    assuming straight-line depreciation. Projects are distributed evenly over depreciation_lifetime years
-    leading up to start_year.
+    Creates a series of historical capex projects that would result in the given initial ratebase value, assuming straight-line depreciation. Uses the triangular number formula to create a uniform distribution of projects over the depreciation lifetime, where each project has the same original cost. Projects are distributed evenly over depreciation_lifetime years leading up to start_year.
 
     Args:
         start_year: The first year of the model
