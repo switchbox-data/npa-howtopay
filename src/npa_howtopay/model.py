@@ -500,6 +500,7 @@ def compute_bill_costs(
 
 
 def run_model(scenario_params: ScenarioParams, input_params: InputParams, ts_params: TimeSeriesParams) -> pl.DataFrame:
+    # in the business-as-usual scenario, we don't have any npa projects. We maintain the scattershot electrification which will still reduce the number of gas customers and total gas usage but will not trigger grid upgrade or capex/opex for either utility.
     if scenario_params.bau:
         ts_params = evolve(ts_params, npa_projects=npa.return_empty_npa_df())
 
