@@ -12,6 +12,7 @@ from npa_howtopay.params import (
 from npa_howtopay.utils import (
     plot_depreciation_accruals,
     plot_ratebase,
+    plot_return_on_ratebase_pct,
     plot_revenue_requirements,
     plot_total_bills,
     plot_user_bills_converts,
@@ -31,6 +32,7 @@ if __name__ == "__main__":
     plot_revenue_requirements(plt_df_delta, show_absolute=False, save_dir="plots")
     plot_volumetric_tariff(plt_df_delta, show_absolute=False, save_dir="plots")
     plot_ratebase(plt_df_delta, show_absolute=False, save_dir="plots")
+    plot_return_on_ratebase_pct(plt_df_delta, show_absolute=False, save_dir="plots")
     plot_depreciation_accruals(plt_df_delta, show_absolute=False, save_dir="plots")
     plot_user_bills_converts(plt_df_delta, show_absolute=False, save_dir="plots")
     plot_user_bills_nonconverts(plt_df_delta, show_absolute=False, save_dir="plots")

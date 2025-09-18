@@ -186,6 +186,24 @@ def plot_depreciation_accruals(
     )
 
 
+def plot_return_on_ratebase_pct(
+    plt_df: pl.DataFrame,
+    scenario_colors: dict = switchbox_colors,
+    scenario_line_styles: dict = line_styles,
+    show_absolute: bool = False,
+    save_dir: Optional[str] = None,
+) -> None:
+    """Return on Ratebase - Faceted"""
+    plot_utility_metric(
+        plt_df=plt_df,
+        column="return_on_ratebase_pct",
+        title="Return on Ratebase as % of Revenue Requirement",
+        y_label_unit="%",
+        show_absolute=show_absolute,
+        save_dir=save_dir,
+    )
+
+
 def plot_user_bills_converts(
     plt_df: pl.DataFrame,
     scenario_colors: dict = switchbox_colors,

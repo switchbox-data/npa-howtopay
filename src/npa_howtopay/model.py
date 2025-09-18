@@ -102,6 +102,9 @@ def compute_intermediate_cols_gas(
     costs_fixed = gas_fixed_overhead_costs + context.gas_maintenance_cost + context.gas_npa_opex
     opex_costs = costs_fixed + costs_volumetric
     revenue_requirement = context.gas_ratebase * input_params.gas.ror + opex_costs + context.gas_depreciation_expense
+    return_on_ratebase_pct = (
+        context.gas_ratebase * input_params.gas.ror
+    ) / revenue_requirement  # Return on Rate Base as % of Revenue Requirement
 
     return pl.DataFrame({
         "year": [context.year],
@@ -111,6 +114,7 @@ def compute_intermediate_cols_gas(
         "gas_costs_fixed": [costs_fixed],
         "gas_opex_costs": [opex_costs],
         "gas_revenue_requirement": [revenue_requirement],
+        "gas_return_on_ratebase_pct": [return_on_ratebase_pct],
     })
 
 
@@ -160,6 +164,9 @@ def compute_intermediate_cols_electric(
     revenue_requirement = (
         context.electric_ratebase * input_params.electric.ror + opex_costs + context.electric_depreciation_expense
     )
+    return_on_ratebase_pct = (
+        context.electric_ratebase * input_params.electric.ror
+    ) / revenue_requirement  # Return on Rate Base as % of Revenue Requirement
 
     return pl.DataFrame({
         "year": [context.year],
@@ -171,6 +178,7 @@ def compute_intermediate_cols_electric(
         "electric_costs_fixed": [costs_fixed],
         "electric_opex_costs": [opex_costs],
         "electric_revenue_requirement": [revenue_requirement],
+        "electric_return_on_ratebase_pct": [return_on_ratebase_pct],
     })
 
 
