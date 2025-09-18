@@ -102,6 +102,9 @@ def compute_intermediate_cols_gas(
     costs_fixed = gas_fixed_overhead_costs + context.gas_maintenance_cost + context.gas_npa_opex
     opex_costs = costs_fixed + costs_volumetric
     revenue_requirement = context.gas_ratebase * input_params.gas.ror + opex_costs + context.gas_depreciation_expense
+    return_on_ratebase_pct = (
+        context.gas_ratebase * input_params.gas.ror
+    ) / revenue_requirement  # Return on Rate Base as % of Revenue Requirement
 
     return pl.DataFrame({
         "year": [context.year],
@@ -111,6 +114,7 @@ def compute_intermediate_cols_gas(
         "gas_costs_fixed": [costs_fixed],
         "gas_opex_costs": [opex_costs],
         "gas_revenue_requirement": [revenue_requirement],
+        "gas_return_on_ratebase_pct": [return_on_ratebase_pct],
     })
 
 
@@ -160,6 +164,9 @@ def compute_intermediate_cols_electric(
     revenue_requirement = (
         context.electric_ratebase * input_params.electric.ror + opex_costs + context.electric_depreciation_expense
     )
+    return_on_ratebase_pct = (
+        context.electric_ratebase * input_params.electric.ror
+    ) / revenue_requirement  # Return on Rate Base as % of Revenue Requirement
 
     return pl.DataFrame({
         "year": [context.year],
@@ -171,6 +178,7 @@ def compute_intermediate_cols_electric(
         "electric_costs_fixed": [costs_fixed],
         "electric_opex_costs": [opex_costs],
         "electric_revenue_requirement": [revenue_requirement],
+        "electric_return_on_ratebase_pct": [return_on_ratebase_pct],
     })
 
 
@@ -658,8 +666,19 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, ts_par
     return results_df
 
 
-def create_delta_bau_df(results_df: dict[str, pl.DataFrame], compare_cols: list[str]) -> pl.DataFrame:
-    bau_df = results_df["bau"].select(["year"] + compare_cols)
+def create_delta_bau_df(results_df: dict[str, pl.DataFrame], compare_cols_all: list[str]) -> pl.DataFrame:
+    bau_df = results_df["bau"].select(["year"] + compare_cols_all)
+
+    # Default mapping: most columns compare against themselves in BAU
+    column_mappings = {col: col for col in compare_cols_all}
+
+    # Override special cases: converts columns compare against nonconverts in BAU
+    special_cases = {
+        "converts_total_bill_per_user": "nonconverts_total_bill_per_user",
+        "electric_converts_bill_per_user": "electric_nonconverts_bill_per_user",
+        "gas_converts_bill_per_user": "gas_nonconverts_bill_per_user",
+    }
+    column_mappings.update(special_cases)
 
     # Create comparison DataFrames for each scenario
     comparison_dfs = {}
@@ -667,13 +686,25 @@ def create_delta_bau_df(results_df: dict[str, pl.DataFrame], compare_cols: list[
         if scenario_name == "bau":
             continue  # Skip BAU itself
 
-        # Join with BAU to subtract values
-        comparison_df = scenario_df.join(
-            bau_df.select(["year"] + [col for col in compare_cols]).rename({col: f"bau_{col}" for col in compare_cols}),
-            on="year",
-        ).select(["year", *[pl.col(col).sub(pl.col(f"bau_{col}")) for col in compare_cols]])
+        # Join with BAU columns
+        bau_cols_to_join = ["year"] + list(set(column_mappings.values()))
+        bau_renames = {col: f"bau_{col}" for col in set(column_mappings.values())}
 
+        comparison_df = scenario_df.join(
+            bau_df.select(bau_cols_to_join).rename(bau_renames),
+            on="year",
+        )
+
+        # Create comparison columns
+        comparison_cols = []
+        for scenario_col, bau_col in column_mappings.items():
+            if scenario_col in compare_cols_all:
+                comparison_cols.append(pl.col(scenario_col).sub(pl.col(f"bau_{bau_col}")))
+
+        # Select final columns
+        comparison_df = comparison_df.select(["year", *comparison_cols])
         comparison_dfs[scenario_name] = comparison_df
+
     delta_bau_df = pl.concat(
         [df.with_columns(pl.lit(scenario_id).alias("scenario_id")) for scenario_id, df in comparison_dfs.items()],
         how="vertical",
