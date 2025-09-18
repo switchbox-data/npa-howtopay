@@ -44,78 +44,23 @@ class NpaProject:
         })
 
 
-def generate_npa_projects(
-    start_year: int,
-    end_year: int,
-    total_num_projects: int,
-    num_converts_per_project: int,
-    pipe_value_per_user: float,
-    pipe_decomm_cost_per_user: float,
-    peak_kw_winter_headroom_per_project: float,
-    peak_kw_summer_headroom_per_project: float,
-    aircon_percent_adoption_pre_npa: float,
-    pipe_decomm_cost_inflation_rate: float = 0.0,
+def append_scattershot_electrification_df(
+    npa_projects_df: pl.DataFrame,
+    scattershot_electrification_df: pl.DataFrame,
 ) -> pl.DataFrame:
     """
-    Generate a dataframe of NPA projects of length total_num_projects.
-    The projects are distributed evenly across the years, with remainders added
-    to earlier years. Note that there can be multiple project rows per year
-    in the result
+    Append a dataframe of scattershot electrification projects to the npa projects df.
+    Scattershot electrification projects match the schema for npa projects, but will only affect the number of users and total electric usage, not anything related to pipe value or grid upgrades. It is meant to capture customers leaving the gas network independent of NPA projects.
     """
-    years = range(start_year, end_year + 1)
-    num_years = len(years)
-    base = total_num_projects // num_years
-    remainder = total_num_projects % num_years
-
-    projects_per_year = np.full(num_years, base, dtype=int)
-    projects_per_year[:remainder] += 1
-
-    project_years = [b for a in [[y] * r for y, r in zip(years, projects_per_year)] for b in a]
-    pipe_decomm_costs = [
-        pipe_decomm_cost_per_user * (1.0 + pipe_decomm_cost_inflation_rate) ** (y - start_year) for y in project_years
-    ]
-
-    return pl.DataFrame({
-        "project_year": project_years,
-        "num_converts": [num_converts_per_project] * total_num_projects,
-        "pipe_value_per_user": [float(pipe_value_per_user)] * total_num_projects,
-        "pipe_decomm_cost_per_user": pipe_decomm_costs,
-        "peak_kw_winter_headroom": [float(peak_kw_winter_headroom_per_project)] * total_num_projects,
-        "peak_kw_summer_headroom": [float(peak_kw_summer_headroom_per_project)] * total_num_projects,
-        "aircon_percent_adoption_pre_npa": [float(aircon_percent_adoption_pre_npa)] * total_num_projects,
-        "is_scattershot": [False] * total_num_projects,
-    })
-
-
-def generate_scattershot_electrification_projects(
-    start_year: int,
-    end_year: int,
-    total_num_converts: int,
-) -> pl.DataFrame:
-    """
-    Generate a dataframe of scattershot electrification projects, one per year.
-    The projects are distributed evenly across the years, with remainders added
-    to earlier years. These match the schema for npa projects, but will only
-    affect the number of users, not anything related to pipe value or grid upgrades
-    """
-    years = range(start_year, end_year + 1)
-    num_years = len(years)
-    base = total_num_converts // num_years
-    remainder = total_num_converts % num_years
-
-    converts_per_year = np.full(num_years, base, dtype=int)
-    converts_per_year[:remainder] += 1
-
-    return pl.DataFrame({
-        "project_year": years,
-        "num_converts": converts_per_year,
-        "pipe_value_per_user": [0.0] * num_years,
-        "pipe_decomm_cost_per_user": [0.0] * num_years,
-        "peak_kw_winter_headroom": [np.inf] * num_years,
-        "peak_kw_summer_headroom": [np.inf] * num_years,
-        "aircon_percent_adoption_pre_npa": [0.0] * num_years,
-        "is_scattershot": [True] * num_years,
-    })
+    scattershot_with_npa_cols = scattershot_electrification_df.with_columns(
+        pl.lit(0.0).alias("pipe_value_per_user"),
+        pl.lit(0.0).alias("pipe_decomm_cost_per_user"),
+        pl.lit(np.inf).alias("peak_kw_winter_headroom"),
+        pl.lit(np.inf).alias("peak_kw_summer_headroom"),
+        pl.lit(0.0).alias("aircon_percent_adoption_pre_npa"),
+        pl.lit(True).alias("is_scattershot"),
+    )
+    return pl.concat([npa_projects_df, scattershot_with_npa_cols])
 
 
 def compute_hp_converts_from_df(year: int, df: pl.DataFrame, cumulative: bool = False, npa_only: bool = False) -> int:
@@ -182,12 +127,12 @@ def compute_pipe_decomm_cost_from_df(year: int, df: pl.DataFrame) -> float:
 
 def return_empty_npa_df() -> pl.DataFrame:
     return pl.DataFrame({
-        "project_year": [],
-        "num_converts": [],
-        "pipe_value_per_user": [],
-        "pipe_decomm_cost_per_user": [],
-        "peak_kw_winter_headroom": [],
-        "peak_kw_summer_headroom": [],
-        "aircon_percent_adoption_pre_npa": [],
-        "is_scattershot": [],
+        "project_year": pl.Series([], dtype=pl.Int64),
+        "num_converts": pl.Series([], dtype=pl.Int64),
+        "pipe_value_per_user": pl.Series([], dtype=pl.Float64),
+        "pipe_decomm_cost_per_user": pl.Series([], dtype=pl.Float64),
+        "peak_kw_winter_headroom": pl.Series([], dtype=pl.Float64),
+        "peak_kw_summer_headroom": pl.Series([], dtype=pl.Float64),
+        "aircon_percent_adoption_pre_npa": pl.Series([], dtype=pl.Float64),
+        "is_scattershot": pl.Series([], dtype=pl.Boolean),
     })
