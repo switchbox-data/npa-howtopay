@@ -38,6 +38,104 @@ toc-title: Table of contents
 This document contains the mathematical formulas implemented in the
 `npa-howtopay` model, organized by functional area.
 
+## Variable Definitions
+
+### Customer and Conversion Variables
+| Variable | Description | Units |
+|----------|-------------|-------|
+| $N_{gas}(t)$ | Number of gas customers in year $t$ | customers |
+| $N_{gas,init}$ | Initial number of gas customers | customers |
+| $N_{electric}(t)$ | Number of electric customers in year $t$ | customers |
+| $N_{electric,init}$ | Initial number of electric customers | customers |
+| $N_{converts}(t)$ | Cumulative heat pump converts through year $t$ | customers |
+| $HP_{converts}(t)$ | Sum of NPA households and scattershot converters in year $t$ | customers |
+| $N_{customers}(t)$ | Total number of customers in year $t$ | customers |
+
+### Energy Usage and Efficiency Variables
+| Variable | Description | Units |
+|----------|-------------|-------|
+| $U_{gas}(t)$ | Total gas usage in therms in year $t$ | therms |
+| $U_{electric}(t)$ | Total electric usage in kWh in year $t$ | kWh |
+| $Q_{heating,therms}$ | Average per-customer heating need in therms | therms/customer |
+| $Q_{electric,kWh}$ | Average per-customer electric need in kWh | kWh/customer |
+| $K_{therm\to kWh}$ | Conversion factor from therms to kWh | kWh/therm |
+| $\eta_{HP}$ | Heat pump efficiency | dimensionless |
+
+### Gas System Variables
+| Variable | Description | Units |
+|----------|-------------|-------|
+| $C_{gas,var}(t)$ | Gas variable costs in year $t$ | $ |
+| $C_{gas,fixed}(t)$ | Gas fixed costs in year $t$ | $ |
+| $C_{gas,overhead}(t)$ | Gas fixed overhead costs in year $t$ | $ |
+| $C_{gas,maintenance}(t)$ | Gas maintenance costs in year $t$ | $ |
+| $C_{gas,NPA,opex}(t)$ | Gas NPA OPEX in year $t$ | $ |
+| $C_{gas,opex}(t)$ | Gas OPEX costs in year $t$ | $ |
+| $R_{gas}(t)$ | Gas revenue requirement in year $t$ | $ |
+| $RB_{gas}(t)$ | Gas ratebase in year $t$ | $ |
+| $ror_{gas}$ | Gas rate of return | % |
+| $D_{gas}(t)$ | Gas depreciation expense in year $t$ | $ |
+| $P_{gas}(t)$ | Gas generation cost per therm in year $t$ | $/therm |
+
+### Electric System Variables
+| Variable | Description | Units |
+|----------|-------------|-------|
+| $C_{electric,var}(t)$ | Electric variable costs in year $t$ | $ |
+| $C_{electric,fixed}(t)$ | Electric fixed costs in year $t$ | $ |
+| $C_{electric,overhead}(t)$ | Electric fixed overhead costs in year $t$ | $ |
+| $C_{electric,maintenance}(t)$ | Electric maintenance costs in year $t$ | $ |
+| $C_{electric,NPA,opex}(t)$ | Electric NPA OPEX in year $t$ | $ |
+| $C_{electric,opex}(t)$ | Electric OPEX costs in year $t$ | $ |
+| $R_{electric}(t)$ | Electric revenue requirement in year $t$ | $ |
+| $RB_{electric}(t)$ | Electric ratebase in year $t$ | $ |
+| $ror_{electric}$ | Electric rate of return | % |
+| $D_{electric}(t)$ | Electric depreciation expense in year $t$ | $ |
+| $P_{electric}(t)$ | Electricity generation cost per kWh in year $t$ | $/kWh |
+
+### Revenue and Inflation Variables
+| Variable | Description | Units |
+|----------|-------------|-------|
+| $R(t)$ | Revenue requirement in year $t$ | $ |
+| $R_{adj}(t)$ | Inflation-adjusted revenue requirement in year $t$ | $ |
+| $R_{electric,adj}(t)$ | Inflation-adjusted electric revenue requirement in year $t$ | $ |
+| $R_{gas,adj}(t)$ | Inflation-adjusted gas revenue requirement in year $t$ | $ |
+| $d$ | Discount rate | % |
+| $t_0$ | Start year | year |
+
+### Tariff and Billing Variables
+| Variable | Description | Units |
+|----------|-------------|-------|
+| $C_{electric,fixed,per\_customer}$ | Electric fixed charge per customer (user input) | $/customer |
+| $C_{electric,var,kWh}(t)$ | Electric volumetric tariff per kWh in year $t$ | $/kWh |
+| $C_{gas,fixed,per\_customer}$ | Gas fixed charge per customer (user input) | $/customer |
+| $C_{gas,var,therm}(t)$ | Gas volumetric tariff per therm in year $t$ | $/therm |
+| $B_{per\_customer}(t)$ | Bill per customer in year $t$ | $/customer |
+| $B_{electric,converts}(t)$ | Electric bill per customer for converts in year $t$ | $/customer |
+| $B_{electric,nonconverts}(t)$ | Electric bill per customer for non-converts in year $t$ | $/customer |
+| $B_{total,converts}(t)$ | Total bill per customer for converts in year $t$ | $/customer |
+| $B_{total,nonconverts}(t)$ | Total bill per customer for non-converts in year $t$ | $/customer |
+| $B_{gas,nonconverts}(t)$ | Gas bill per customer for non-converts in year $t$ | $/customer |
+
+### Depreciation and Project Variables
+| Variable | Description | Units |
+|----------|-------------|-------|
+| $f_{dep}(t, t_p, L)$ | Depreciation fraction for project $p$ in year $t$ | dimensionless |
+| $RB(t)$ | Total ratebase in year $t$ | $ |
+| $D(t)$ | Total depreciation expense in year $t$ | $ |
+| $C_{maintenance}(t)$ | Total maintenance costs in year $t$ | $ |
+| $t_p$ | Project year for project $p$ | year |
+| $L_p$ | Depreciation lifetime for project $p$ | years |
+| $C_p$ | Original cost of project $p$ | $ |
+| $C_{p_{non-NPA}}$ | Original cost of non-NPA project $p$ | $ |
+| $m_{pct}$ | Maintenance cost percentage | % |
+
+### Synthetic Initial Project Variables
+| Variable | Description | Units |
+|----------|-------------|-------|
+| $W_{total}$ | Total weight for synthetic initial projects | dimensionless |
+| $L$ | Depreciation lifetime | years |
+| $RB_{init}$ | Initial ratebase | $ |
+| $C_{est}$ | Estimated original cost per year | $/year |
+
 ## Gas System Calculations
 
 ### Gas Number of customers
@@ -100,6 +198,8 @@ $$C_{gas,opex}(t) = C_{gas,fixed}(t) + C_{gas,var}(t)$$
 **Variables:**
 
 -   $C_{gas,opex}(t)$: Gas OPEX costs in year $t$
+-   $C_{gas,fixed}(t)$: Gas fixed costs in year $t$
+-   $C_{gas,var}(t)$: Gas variable costs in year $t$
 
 ### Gas Revenue Requirement
 
@@ -113,6 +213,7 @@ $$R_{gas}(t) = RB_{gas}(t) \times ror_{gas} + C_{gas,opex}(t) + D_{gas}(t)$$
 -   $R_{gas}(t)$: Gas revenue requirement in year $t$
 -   $RB_{gas}(t)$: Gas ratebase in year $t$
 -   $ror_{gas}$: Gas rate of return
+-   $C_{gas,opex}(t)$: Gas OPEX costs in year $t$
 -   $D_{gas}(t)$: Gas depreciation expense in year $t$
 
 ## Electric System Calculations
@@ -138,7 +239,9 @@ $$N_{converts}(t) = \sum_{i=1}^{t} HP_{converts}(i)$$
 **Variables:**
 
 -   $N_{converts}(t)$: Sum of NPA households and scattershot converters
-    in year $t$.
+    in year $t$
+-   $HP_{converts}(i)$: Sum of NPA households and scattershot converters
+    in year $i$
 
 ### Total Electric Usage
 
@@ -151,7 +254,9 @@ $$U_{electric}(t) = N_{electric,init} \times Q_{electric,kWh} + \frac{N_{convert
 
 -   $U_{electric}(t)$: Total electric usage in kWh in year $t$
 -   $N_{electric,init}$: Initial number of electric customers
+-   $N_{converts}(t)$: Cumulative heat pump converts through year $t$
 -   $Q_{electric,kWh}$: Average per-customer electric need in kWh
+-   $Q_{heating,therms}$: Average per-customer heating need in therms
 -   $K_{therm\to kWh}$: Conversion factor from therms to kWh
 -   $\eta_{HP}$: Heat pump efficiency
 
@@ -165,6 +270,7 @@ $$C_{electric,var}(t) = U_{electric}(t) \times P_{electric}(t)$$
 **Variables:**
 
 -   $C_{electric,var}(t)$: Electric variable costs in year $t$
+-   $U_{electric}(t)$: Total electric usage in kWh in year $t$
 -   $P_{electric}(t)$: Electricity generation cost per kWh in year $t$
 
 ### Electric Fixed Costs
@@ -191,6 +297,8 @@ $$C_{electric,opex}(t) = C_{electric,fixed}(t) + C_{electric,var}(t)$$
 **Variables:**
 
 -   $C_{electric,opex}(t)$: Electric OPEX costs in year $t$
+-   $C_{electric,fixed}(t)$: Electric fixed costs in year $t$
+-   $C_{electric,var}(t)$: Electric variable costs in year $t$
 
 ### Electric Revenue Requirement
 
@@ -204,6 +312,7 @@ $$R_{electric}(t) = RB_{electric}(t) \times ror_{electric} + C_{electric,opex}(t
 -   $R_{electric}(t)$: Electric revenue requirement in year $t$
 -   $RB_{electric}(t)$: Electric ratebase in year $t$
 -   $ror_{electric}$: Electric rate of return
+-   $C_{electric,opex}(t)$: Electric OPEX costs in year $t$
 -   $D_{electric}(t)$: Electric depreciation expense in year $t$
 
 ## Bill Cost Calculations
@@ -231,6 +340,7 @@ $$B_{per\_customer}(t) = \frac{R_{adj}(t)}{N_{customers}(t)}$$
 **Variables:**
 
 -   $B_{per\_customer}(t)$: Bill per customer in year $t$
+-   $R_{adj}(t)$: Inflation-adjusted revenue requirement in year $t$
 -   $N_{customers}(t)$: Number of customers in year $t$
 
 ### Electric Fixed Charge Per customer
@@ -295,6 +405,12 @@ $$B_{electric,converts}(t) = C_{electric,fixed,per\_customer} + C_{electric,var,
 
 -   $B_{electric,converts}(t)$: Electric bill per customer for converts
     in year $t$
+-   $C_{electric,fixed,per\_customer}$: Electric fixed charge per customer (user input)
+-   $C_{electric,var,kWh}(t)$: Electric volumetric tariff per kWh in year $t$
+-   $Q_{electric,kWh}$: Average per-customer electric need in kWh
+-   $Q_{heating,therms}$: Average per-customer heating need in therms
+-   $K_{therm\to kWh}$: Conversion factor from therms to kWh
+-   $\eta_{HP}$: Heat pump efficiency
 
 ### Non-Converts Electric Bill Per customer
 
@@ -306,6 +422,9 @@ $$B_{electric,nonconverts}(t) = C_{electric,fixed,per\_customer} + C_{electric,v
 
 -   $B_{electric,nonconverts}(t)$: Electric bill per customer for
     non-converts in year $t$
+-   $C_{electric,fixed,per\_customer}$: Electric fixed charge per customer (user input)
+-   $C_{electric,var,kWh}(t)$: Electric volumetric tariff per kWh in year $t$
+-   $Q_{electric,kWh}$: Average per-customer electric need in kWh
 
 ### Converts Total Bill Per customer
 
@@ -317,6 +436,7 @@ $$B_{total,converts}(t) = B_{electric,converts}(t)$$
 
 -   $B_{total,converts}(t)$: Total bill per customer for converts in
     year $t$
+-   $B_{electric,converts}(t)$: Electric bill per customer for converts in year $t$
 
 ### Non-Converts Total Bill Per customer
 
@@ -330,6 +450,7 @@ $$B_{total,nonconverts}(t) = B_{gas,nonconverts}(t) + B_{electric,nonconverts}(t
     in year $t$
 -   $B_{gas,nonconverts}(t)$: Gas bill per customer for non-converts in
     year $t$
+-   $B_{electric,nonconverts}(t)$: Electric bill per customer for non-converts in year $t$
 
 ## Depreciation and Inflation Calculations
 
@@ -348,7 +469,10 @@ $$RB(t) = \sum_{p} f_{dep}(t, t_p, L_p) \times C_p$$
 
 -   $f_{dep}(t, t_p, L)$: Depreciation fraction for project $p$ in year
     $t$
+-   $RB(t)$: Total ratebase in year $t$
+-   $t$: Current year
 -   $t_p$: Project year for project $p$
+-   $L$: Depreciation lifetime
 -   $L_p$: Depreciation lifetime for project $p$
 -   $C_p$: Original cost of project $p$
 
@@ -364,6 +488,10 @@ $$D(t) = \sum_{p} \begin{cases}
 **Variables:**
 
 -   $D(t)$: Total depreciation expense in year $t$
+-   $t$: Current year
+-   $C_p$: Original cost of project $p$
+-   $L_p$: Depreciation lifetime for project $p$
+-   $t_p$: Project year for project $p$
 
 ### Maintenance Costs
 
@@ -378,6 +506,7 @@ C_{p_{non-NPA}} & \text{if } t_p < t \leq t_p + L_p \\
 **Variables:**
 
 -   $C_{maintenance}(t)$: Total maintenance costs in year $t$
+-   $t$: Current year
 -   $m_{pct}$: Maintenance cost percentage
 -   $C_{p_{non-NPA}}$: Original cost of non-NPA project $p$
 -   $t_p$: Project year for project $p$
