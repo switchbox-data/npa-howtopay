@@ -33,9 +33,7 @@ title: Formulas - NPA How to Pay Model
 toc-title: Table of contents
 ---
 
-# Mathematical Formulas
-
-This document contains the mathematical formulas implemented in the
+This document contains the  formulas implemented in the
 `npa-howtopay` model, organized by functional area.
 
 ## Variable Definitions
@@ -47,8 +45,8 @@ This document contains the mathematical formulas implemented in the
 | $N_{gas,init}$ | Initial number of gas customers | customers |
 | $N_{electric}(t)$ | Number of electric customers in year $t$ | customers |
 | $N_{electric,init}$ | Initial number of electric customers | customers |
-| $N_{converts}(t)$ | Cumulative heat pump converts through year $t$ | customers |
-| $HP_{converts}(t)$ | Sum of NPA households and scattershot converters in year $t$ | customers |
+| $N_{converts}(t)$ | Cumulative number of converted households including non-npa households through year $t$ | customers |
+| $N_{NPAconverts}(t)$ | Sum of NPA households converters in year $t$ (excludes scattershot electrification) | customers |
 | $N_{customers}(t)$ | Total number of customers in year $t$ | customers |
 
 ### Energy Usage and Efficiency Variables
@@ -90,6 +88,7 @@ This document contains the mathematical formulas implemented in the
 | $ror_{electric}$ | Electric rate of return | % |
 | $D_{electric}(t)$ | Electric depreciation expense in year $t$ | $ |
 | $P_{electric}(t)$ | Electricity generation cost per kWh in year $t$ | $/kWh |
+| $P_{peak,kw}$| Distribution cost per peak kW increase | $/kWh |
 
 ### Revenue and Inflation Variables
 | Variable | Description | Units |
@@ -143,13 +142,13 @@ This document contains the mathematical formulas implemented in the
 The number of gas customers decreases over time as customers convert to
 heat pumps. There is no growth in the number of gas customers:
 
-$$N_{gas}(t) = N_{gas,init} - \sum_{i=1}^{t} HP_{converts}(i)$$
+$$N_{gas}(t) = N_{gas,init} - \sum_{i=1}^{t} N_{converts}(i)$$
 
 **Variables:**
 
 -   $N_{gas}(t)$: Number of gas customers in year $t$
 -   $N_{gas,init}$: Initial number of gas customers
--   $HP_{converts}(t)$: Sum of NPA households and scattershot converters
+-   $N_{converts}(t)$: Sum of NPA households and scattershot converters
     in year $t$.
 
 ### Total Gas Usage
@@ -201,6 +200,20 @@ $$C_{gas,opex}(t) = C_{gas,fixed}(t) + C_{gas,var}(t)$$
 -   $C_{gas,fixed}(t)$: Gas fixed costs in year $t$
 -   $C_{gas,var}(t)$: Gas variable costs in year $t$
 
+### Gas Avoided LPP Spending
+
+The avoided LPP spending in a given year is the sum of the pipe value per customer times the number of converts for each NPA project in that year:
+
+$$C_{gas,LPP,avoided}(t) = \sum_{p \in P(t)} N_{converts}(p) \times V_{pipe,user}(p)$$
+
+**Variables:**
+
+-   $C_{gas,LPP,avoided}(t)$: Gas LPP spending avoided in year $t$
+-   $P(t)$: Set of NPA projects in year $t$
+-   $N_{converts}(p)$: Number of converts in project $p$
+-   $V_{pipe,user}(p)$: Pipe value per user for project $p$
+
+
 ### Gas Revenue Requirement
 
 The gas revenue requirement includes ratebase return, OPEX, and
@@ -229,19 +242,6 @@ $$N_{electric}(t) = N_{electric,init}$$
 -   $N_{electric}(t)$: Number of electric customers in year $t$
 -   $N_{electric,init}$: Initial number of electric customers
 
-### Total Cumulative Converts
-
-The cumulative number of heat pump converts through year $t$. This does
-not affect the number of electric customers:
-
-$$N_{converts}(t) = \sum_{i=1}^{t} HP_{converts}(i)$$
-
-**Variables:**
-
--   $N_{converts}(t)$: Sum of NPA households and scattershot converters
-    in year $t$
--   $HP_{converts}(i)$: Sum of NPA households and scattershot converters
-    in year $i$
 
 ### Total Electric Usage
 
@@ -254,7 +254,7 @@ $$U_{electric}(t) = N_{electric,init} \times Q_{electric,kWh} + \frac{N_{convert
 
 -   $U_{electric}(t)$: Total electric usage in kWh in year $t$
 -   $N_{electric,init}$: Initial number of electric customers
--   $N_{converts}(t)$: Cumulative heat pump converts through year $t$
+-   $N_{converts}(t)$: Cumulative electrification converts through year $t$
 -   $Q_{electric,kWh}$: Average per-customer electric need in kWh
 -   $Q_{heating,therms}$: Average per-customer heating need in therms
 -   $K_{therm\to kWh}$: Conversion factor from therms to kWh
@@ -314,6 +314,28 @@ $$R_{electric}(t) = RB_{electric}(t) \times ror_{electric} + C_{electric,opex}(t
 -   $ror_{electric}$: Electric rate of return
 -   $C_{electric,opex}(t)$: Electric OPEX costs in year $t$
 -   $D_{electric}(t)$: Electric depreciation expense in year $t$
+
+### Electric Grid Upgrades
+
+The cost of electric grid upgrades is determined by the peak kW increase from heat pumps and air conditioning, multiplied by a per-peak kW distribution cost:
+
+$$C_{grid,upgrade}(t) = \Delta kW_{peak}(t) \times P_{peak,kw}$$
+
+where the peak kW increase is:
+
+$$\Delta kW_{peak}(t) = \sum_{p \in P(t)} \left[ N_{NPAconverts}(p) \times \left( kW_{HP,peak} + (kW_{AC,peak} \times (1 - a_{pre})) \right) \right]$$
+
+**Variables:**
+
+-   $C_{grid,upgrade}(t)$: Grid upgrade capital cost in year $t$
+-   $\Delta kW_{peak}(t)$: Total peak kW increase in year $t$
+-   $P_{peak,kw}$: Distribution cost per peak kW increase
+-   $P(t)$: Set of NPA projects in year $t$
+-   $N_{NPAconverts}(p)$: Number of converts in project $p$
+-   $kW_{HP,peak}$: Peak kW per heat pump
+-   $kW_{AC,peak}$: Peak kW per air conditioner
+-   $a_{pre}$: Pre-NPA air conditioner adoption rate
+
 
 ## Bill Cost Calculations
 
@@ -523,6 +545,7 @@ The estimated original cost per year is:
 
 $$C_{est} = \frac{RB_{init}}{W_{total}}$$
 
+This creates a table of synthetic project with uniform original costs of that would results in the inital ratebase value in year 0. 
 **Variables:**
 
 -   $W_{total}$: Total weight for synthetic initial projects
