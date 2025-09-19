@@ -545,7 +545,7 @@ The estimated original cost per year is:
 
 $$C_{est} = \frac{RB_{init}}{W_{total}}$$
 
-This creates a table of synthetic project with uniform original costs of that would results in the inital ratebase value in year 0. 
+This creates a table of synthetic project with uniform original costs of that would results in the inital ratebase value in year 0.
 **Variables:**
 
 -   $W_{total}$: Total weight for synthetic initial projects
