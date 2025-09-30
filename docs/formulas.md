@@ -217,9 +217,9 @@ $$C_{gas,LPP,avoided}(t) = \sum_{p \in P(t)} N_{converts}(p) \times V_{pipe,user
 ### Gas Revenue Requirement
 
 The gas revenue requirement includes ratebase return, OPEX, and
-depreciation:
+depreciation. In the performance incentive scenario, it also includes performance incentives:
 
-$$R_{gas}(t) = RB_{gas}(t) \times ror_{gas} + C_{gas,opex}(t) + D_{gas}(t)$$
+$$R_{gas}(t) = RB_{gas}(t) \times ror_{gas} + C_{gas,opex}(t) + D_{gas}(t) + PI_{gas}(t)$$
 
 **Variables:**
 
@@ -228,6 +228,7 @@ $$R_{gas}(t) = RB_{gas}(t) \times ror_{gas} + C_{gas,opex}(t) + D_{gas}(t)$$
 -   $ror_{gas}$: Gas rate of return
 -   $C_{gas,opex}(t)$: Gas OPEX costs in year $t$
 -   $D_{gas}(t)$: Gas depreciation expense in year $t$
+-   $PI_{gas}(t)$: Gas performance incentive in year $t$ (performance incentive scenario only)
 
 ## Electric System Calculations
 
@@ -476,6 +477,28 @@ $$B_{total,nonconverts}(t) = B_{gas,nonconverts}(t) + B_{electric,nonconverts}(t
 
 ## Depreciation and Inflation Calculations
 
+### Net Present Value (NPV) Calculation
+
+The NPV calculation evaluates utility investments by considering both the return on ratebase and depreciation recovery over the investment lifetime:
+
+$$NPV = -C_0 + \sum_{t=1}^{L} \frac{R_t + D_t}{(1 + r)^t}$$
+
+where:
+- $R_t = C_0 \times f_{dep}(t) \times ror$ (return on remaining ratebase value)
+- $D_t = \frac{C_0}{L}$ (annual depreciation recovery)
+- $f_{dep}(t) = \max(0, 1 - \frac{t}{L})$ (remaining value fraction)
+
+**Variables:**
+
+-   $NPV$: Net present value of the investment
+-   $C_0$: Initial investment cost
+-   $L$: Investment lifetime in years
+-   $R_t$: Annual return on ratebase in year $t$
+-   $D_t$: Annual depreciation recovery in year $t$
+-   $ror$: Rate of return on ratebase
+-   $r$: NPV discount rate
+-   $f_{dep}(t)$: Depreciation fraction in year $t$
+
 ### Ratebase Calculation
 
 The depreciation fraction determines how much of a project's original
@@ -552,3 +575,54 @@ This creates a table of synthetic project with uniform original costs of that wo
 -   $L$: Depreciation lifetime
 -   $RB_{init}$: Initial ratebase
 -   $C_{est}$: Estimated original cost per year
+
+## Performance Incentive Calculations
+
+### Performance Incentive Mechanism
+
+The performance incentive mechanism models shared savings between utilities and ratepayers for NPA (Non-Pipe Alternative) projects. This mechanism treats NPA costs and avoided BAU (Business-As-Usual) costs differently:
+
+**NPA Costs Treatment:**
+- NPA costs are treated as gas OpEx (operating expenses)
+- Collected in the year costs are incurred
+- No rate of return earned on NPA investments
+
+**BAU Costs Treatment:**
+- Avoided BAU costs (what would have been spent replacing LPP) are treated as normal CapEx
+- User sets ROR and depreciation period equal to pipeline lifetime
+- Earns return on ratebase over depreciation lifetime
+
+**Cost Savings Calculation:**
+Cost savings are calculated as the NPV difference between avoided BAU costs and NPA costs:
+
+$$Savings_{NPV}(t) = NPV_{BAU}(t) - NPV_{NPA}(t)$$
+
+where:
+- $NPV_{BAU}(t)$ = NPV of avoided LPP spending in year $t$
+- $NPV_{NPA}(t)$ = NPV of NPA investment costs in year $t$
+
+**Performance Incentive Distribution:**
+30% of cost savings are collected from ratepayers, evenly split over a 10-year period:
+
+$$PI_{annual}(t) = \frac{0.30 \times Savings_{NPV}(t)}{10}$$
+
+**Variables:**
+
+-   $Savings_{NPV}(t)$: NPV savings from NPA projects in year $t$
+-   $NPV_{BAU}(t)$: NPV of avoided BAU costs in year $t$
+-   $NPV_{NPA}(t)$: NPV of NPA investment costs in year $t$
+-   $PI_{annual}(t)$: Annual performance incentive payment in year $t$
+
+### Performance Incentive Revenue Requirement Impact
+
+In the performance incentive scenario, the gas revenue requirement includes the annual performance incentive payments:
+
+$$R_{gas,PI}(t) = R_{gas}(t) + \sum_{i=0}^{9} PI_{annual}(t-i)$$
+
+where the summation includes performance incentive payments from all active savings projects (those initiated in years $t-9$ through $t$).
+
+**Variables:**
+
+-   $R_{gas,PI}(t)$: Gas revenue requirement including performance incentives in year $t$
+-   $R_{gas}(t)$: Standard gas revenue requirement in year $t$
+-   $PI_{annual}(t-i)$: Annual performance incentive payment from savings project initiated in year $t-i$
