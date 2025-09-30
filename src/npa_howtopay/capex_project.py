@@ -441,13 +441,7 @@ def compute_npv_savings_from_npa_projects(
     avoided_lpp_cost = compute_npa_pipe_cost_avoided_from_df(year, npas_this_year)
 
     # Calculate NPVs
-    npa_npv = compute_npv_of_capex_investment(
-        initial_cost=npa_investment_cost,
-        lifetime=npa_lifetime,
-        ror=gas_ror,
-        real_dollar_discount_rate=npv_discount_rate,
-        year=year,
-    )
+    npa_npv = npa_investment_cost # npa investment is opex so costs are recouped in the same year with no ror
 
     avoided_lpp_npv = compute_npv_of_capex_investment(
         initial_cost=avoided_lpp_cost,

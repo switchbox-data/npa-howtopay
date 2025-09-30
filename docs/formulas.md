@@ -595,11 +595,11 @@ The performance incentive mechanism models shared savings between utilities and 
 **Cost Savings Calculation:**
 Cost savings are calculated as the NPV difference between avoided BAU costs and NPA costs:
 
-$$Savings_{NPV}(t) = NPV_{BAU}(t) - NPV_{NPA}(t)$$
+$$Savings_{NPV}(t) = NPV_{BAU}(t) - C_{gas,NPA,opex}(t)$$
 
 where:
 - $NPV_{BAU}(t)$ = NPV of avoided LPP spending in year $t$
-- $NPV_{NPA}(t)$ = NPV of NPA investment costs in year $t$
+- $C_{gas,NPA,opex}(t)$ = NPA investment costs in year $t$
 
 **Performance Incentive Distribution:**
 30% of cost savings are collected from ratepayers, evenly split over a 10-year period:
@@ -610,8 +610,11 @@ $$PI_{annual}(t) = \frac{0.30 \times Savings_{NPV}(t)}{10}$$
 
 -   $Savings_{NPV}(t)$: NPV savings from NPA projects in year $t$
 -   $NPV_{BAU}(t)$: NPV of avoided BAU costs in year $t$
--   $NPV_{NPA}(t)$: NPV of NPA investment costs in year $t$
+-   $C_{gas,NPA,opex}(t)$: NPA OPEX in year $t$
 -   $PI_{annual}(t)$: Annual performance incentive payment in year $t$
+
+
+$C_{gas,NPA,opex}(t)$ | Gas NPA OPEX in year $t$
 
 ### Performance Incentive Revenue Requirement Impact
 
