@@ -35,9 +35,12 @@ electric:
 shared:
   cost_inflation_rate: 0.035 # rate at which expenses grow from init value; applies to generation_costs, npa_install_costs, and grid upgrade costs
   construction_inflation_rate: 0.035 # rate at which construction expenses grow from init value; applies to non-lpp and grid upgrade capex projects
-  discount_rate: 0.03 # discount rate for converting future revenue requirements and bills into today's dollars
+  real_dollar_discount_rate: 0.03 #  # Converts nominal to real dollars. discount rate for converting future revenue requirements and bills into today's dollars
+  npv_discount_rate: 0.05 # Calculates NPV of investments. real discount rate for calculating net present value of capex projects (used for performance incentive scenario)
+  performance_incentive_pct: 0.3 # percentage of savings (avoided LPP spending) on which gas utility receives a performance incentive (used for performance incentive scenario)
+  incentive_payback_period: 10 # number of years to pay incentives (used for performance incentive scenario)
   npa_install_costs_init: 20.0e3 # cost of installing one npa per household, in initial year of model
-  npa_lifetime: 15.0 # average lifetime of an installed npa
+  npa_lifetime: 15 # average lifetime of an installed npa
   start_year: 2025 # start year of model
 
 
