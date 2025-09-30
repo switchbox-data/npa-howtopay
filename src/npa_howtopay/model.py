@@ -35,7 +35,6 @@ class YearContext:
     gas_performance_incentive: float
 
 
-
 def create_scenario_runs(
     start_year: int,
     end_year: int,
@@ -106,7 +105,12 @@ def compute_intermediate_cols_gas(
     costs_volumetric = total_usage * input_params.gas.gas_generation_cost_per_therm(context.year)
     costs_fixed = gas_fixed_overhead_costs + context.gas_maintenance_cost + context.gas_npa_opex
     opex_costs = costs_fixed + costs_volumetric
-    revenue_requirement = context.gas_ratebase * input_params.gas.ror + opex_costs + context.gas_depreciation_expense + context.gas_performance_incentive
+    revenue_requirement = (
+        context.gas_ratebase * input_params.gas.ror
+        + opex_costs
+        + context.gas_depreciation_expense
+        + context.gas_performance_incentive
+    )
     return_on_ratebase_pct = (
         context.gas_ratebase * input_params.gas.ror
     ) / revenue_requirement  # Return on Rate Base as % of Revenue Requirement
@@ -637,11 +641,9 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, ts_par
                 how="vertical",
             )
             gas_performance_incentive = cp.compute_performance_incentive_this_year(year, gas_npa_savings)
-           
-
 
         # calculate ratebase
-        gas_ratebase = cp.compute_ratebase_from_capex_projects(year, gas_capex_projects) 
+        gas_ratebase = cp.compute_ratebase_from_capex_projects(year, gas_capex_projects)
         electric_ratebase = cp.compute_ratebase_from_capex_projects(year, electric_capex_projects)
 
         # calculate depreciation expense
