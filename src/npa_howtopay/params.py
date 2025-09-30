@@ -1,4 +1,3 @@
-from re import T
 from attrs import define, field, validators
 from typing import Literal, Optional
 from ruamel.yaml import YAML
