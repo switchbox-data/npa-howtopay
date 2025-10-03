@@ -3,6 +3,7 @@ from typing import Literal, Optional
 from ruamel.yaml import YAML
 import polars as pl
 from npa_howtopay.web_params import create_time_series_from_web_params, WebParams
+from npa_howtopay.npa_project import append_scattershot_electrification_df
 
 # from npa_project import NpaProject
 import os
@@ -126,9 +127,15 @@ class InputParams:
 @define
 class TimeSeriesParams:
     npa_projects: pl.DataFrame
+    scattershot_electrification: pl.DataFrame
     gas_fixed_overhead_costs: pl.DataFrame
     electric_fixed_overhead_costs: pl.DataFrame
     gas_bau_lpp_costs_per_year: pl.DataFrame
+
+    def __attrs_post_init__(self) -> None:
+        """Automatically append scattershot electrification to npa projects. In the BAU scenario, this will only return the scattershot electrification dataframe."""
+
+        self.npa_projects = append_scattershot_electrification_df(self.npa_projects, self.scattershot_electrification)
 
 
 @define
@@ -187,6 +194,7 @@ def _load_time_series_params_from_yaml(yaml_path: str) -> TimeSeriesParams:
 
     return TimeSeriesParams(
         npa_projects=pl.DataFrame(config["time_series"]["npa_projects"]),
+        scattershot_electrification=pl.DataFrame(config["time_series"]["scattershot_electrification_users_per_year"]),
         gas_fixed_overhead_costs=pl.DataFrame(config["time_series"]["gas_fixed_overhead_costs"]),
         electric_fixed_overhead_costs=pl.DataFrame(config["time_series"]["electric_fixed_overhead_costs"]),
         gas_bau_lpp_costs_per_year=pl.DataFrame(config["time_series"]["gas_bau_lpp_costs_per_year"]),
@@ -234,6 +242,7 @@ def load_time_series_params_from_web_params(
 
     return TimeSeriesParams(
         npa_projects=generated_data["npa_projects"],
+        scattershot_electrification=generated_data["scattershot_electrification_users_per_year"],
         gas_fixed_overhead_costs=generated_data["gas_fixed_overhead_costs"],
         electric_fixed_overhead_costs=generated_data["electric_fixed_overhead_costs"],
         gas_bau_lpp_costs_per_year=generated_data["gas_bau_lpp_costs_per_year"],
