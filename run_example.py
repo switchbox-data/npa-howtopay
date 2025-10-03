@@ -51,7 +51,7 @@ if __name__ == "__main__":
     plot_user_bills_converts(plt_df_absolute, show_absolute=True, save_dir="plots")
     plot_user_bills_nonconverts(plt_df_absolute, show_absolute=True, save_dir="plots")
 
-    plot_total_bills(results_df, show_absolute=True, save_dir="plots")
+    plot_total_bills(results_df, save_dir="plots")
     plot_return_on_ratebase_pct(results_df, show_absolute=True, save_dir="plots")
 
 # Method 2: Using web parameters (scalar values)
