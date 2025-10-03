@@ -42,9 +42,9 @@ This document contains the  formulas implemented in the
 | Variable | Description | Units |
 |----------|-------------|-------|
 | $N_{gas}(t)$ | Number of gas customers in year $t$ | customers |
-| $N_{gas,init}$ | Initial number of gas customers | customers |
+| $N_{gas}(0)$ | Initial number of gas customers | customers |
 | $N_{electric}(t)$ | Number of electric customers in year $t$ | customers |
-| $N_{electric,init}$ | Initial number of electric customers | customers |
+| $N_{electric}(0)$ | Initial number of electric customers | customers |
 | $N_{converts}(t)$ | Cumulative number of converted households including non-npa households through year $t$ | customers |
 | $N_{NPAconverts}(t)$ | Sum of NPA households converters in year $t$ (excludes scattershot electrification) | customers |
 | $N_{customers}(t)$ | Total number of customers in year $t$ | customers |
@@ -142,12 +142,12 @@ This document contains the  formulas implemented in the
 The number of gas customers decreases over time as customers convert to
 heat pumps. There is no growth in the number of gas customers:
 
-$$N_{gas}(t) = N_{gas,init} - \sum_{i=1}^{t} N_{converts}(i)$$
+$$N_{gas}(t) = N_{gas}(0) - \sum_{i=1}^{t} N_{converts}(i)$$
 
 **Variables:**
 
 -   $N_{gas}(t)$: Number of gas customers in year $t$
--   $N_{gas,init}$: Initial number of gas customers
+-   $N_{gas}(0)$: Initial number of gas customers
 -   $N_{converts}(t)$: Sum of NPA households and scattershot converters
     in year $t$.
 
@@ -236,12 +236,12 @@ $$R_{gas}(t) = RB_{gas}(t) \times ror_{gas} + C_{gas,opex}(t) + D_{gas}(t) + PI_
 
 The number of electric customers is the initial number of electric
 customers. There is no growth in the number of electric customers:
-$$N_{electric}(t) = N_{electric,init}$$
+$$N_{electric}(t) = N_{electric}(0)$$
 
 **Variables:**
 
 -   $N_{electric}(t)$: Number of electric customers in year $t$
--   $N_{electric,init}$: Initial number of electric customers
+-   $N_{electric}(0)$: Initial number of electric customers
 
 
 ### Total Electric Usage
@@ -249,12 +249,12 @@ $$N_{electric}(t) = N_{electric,init}$$
 Electric usage includes both base electric needs and heating loads from
 converts:
 
-$$U_{electric}(t) = N_{electric,init} \times Q_{electric,kWh} + \frac{N_{converts}(t) \times Q_{heating,therms} \times K_{therm\to kWh}}{\eta_{HP}}$$
+$$U_{electric}(t) = N_{electric}(0) \times Q_{electric,kWh} + \frac{N_{converts}(t) \times Q_{heating,therms} \times K_{therm\to kWh}}{\eta_{HP}}$$
 
 **Variables:**
 
 -   $U_{electric}(t)$: Total electric usage in kWh in year $t$
--   $N_{electric,init}$: Initial number of electric customers
+-   $N_{electric}(0)$: Initial number of electric customers
 -   $N_{converts}(t)$: Cumulative electrification converts through year $t$
 -   $Q_{electric,kWh}$: Average per-customer electric need in kWh
 -   $Q_{heating,therms}$: Average per-customer heating need in therms
@@ -484,8 +484,9 @@ The NPV calculation evaluates utility investments by considering both the return
 $$NPV = -C_0 + \sum_{t=1}^{L} \frac{R_t + D_t}{(1 + r)^t}$$
 
 where:
-- $R_t = C_0 \times f_{dep}(t) \times ror$ (return on remaining ratebase value)
-- $D_t = \frac{C_0}{L}$ (annual depreciation recovery)
+
+-   $R_t = C_0 \times f_{dep}(t) \times ror$ (return on remaining ratebase value)
+-   $D_t = \frac{C_0}{L}$ (annual depreciation recovery)
 - $f_{dep}(t) = \max(0, 1 - \frac{t}{L})$ (remaining value fraction)
 
 **Variables:**
@@ -613,8 +614,6 @@ $$PI_{annual}(t) = \frac{0.30 \times Savings_{NPV}(t)}{10}$$
 -   $C_{gas,NPA,opex}(t)$: NPA OPEX in year $t$
 -   $PI_{annual}(t)$: Annual performance incentive payment in year $t$
 
-
-$C_{gas,NPA,opex}(t)$ | Gas NPA OPEX in year $t$
 
 ### Performance Incentive Revenue Requirement Impact
 
