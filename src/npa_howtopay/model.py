@@ -667,58 +667,91 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, ts_par
     return results_df
 
 
-def create_delta_bau_df(results_df: dict[str, pl.DataFrame], compare_cols_all: list[str]) -> pl.DataFrame:
-    bau_df = results_df["bau"].select(["year"] + compare_cols_all)
+def create_delta_df(results_dfs: dict[str, pl.DataFrame], compare_cols_all: list[str]) -> pl.DataFrame:
+    bau_df = results_dfs["bau"].select(["year"] + compare_cols_all)
 
     # Default mapping: most columns compare against themselves in BAU
-    column_mappings = {col: col for col in compare_cols_all}
+    column_mappings = {col: (col, "bau") for col in compare_cols_all}
 
-    # Override special cases: converts columns compare against nonconverts in BAU
+    # Override special cases: converts columns compare against nonconverts in same scenario
     special_cases = {
-        "converts_total_bill_per_user": "nonconverts_total_bill_per_user",
-        "electric_converts_bill_per_user": "electric_nonconverts_bill_per_user",
-        "gas_converts_bill_per_user": "gas_nonconverts_bill_per_user",
+        "converts_total_bill_per_user": ("nonconverts_total_bill_per_user", "self"),
+        "electric_converts_bill_per_user": ("electric_nonconverts_bill_per_user", "self"),
+        "gas_converts_bill_per_user": ("gas_nonconverts_bill_per_user", "self"),
     }
     column_mappings.update(special_cases)
 
+    # Determine what BAU columns we need
+    bau_cols_needed = set()
+    for scenario_col, (baseline_col, baseline_df_name) in column_mappings.items():
+        if baseline_df_name == "bau" and scenario_col in compare_cols_all:
+            bau_cols_needed.add(baseline_col)
+
     # Create comparison DataFrames for each scenario
     comparison_dfs = {}
-    for scenario_name, scenario_df in results_df.items():
+    for scenario_name, scenario_df in results_dfs.items():
         if scenario_name == "bau":
-            continue  # Skip BAU itself
+            continue
 
-        # Join with BAU columns
-        bau_cols_to_join = ["year"] + list(set(column_mappings.values()))
-        bau_renames = {col: f"bau_{col}" for col in set(column_mappings.values())}
+        # Do one join with all needed BAU columns
+        if bau_cols_needed:
+            bau_cols_to_join = ["year"] + list(bau_cols_needed)
+            bau_renames = {col: f"bau_{col}" for col in bau_cols_needed}
+            working_df = scenario_df.join(
+                bau_df.select(bau_cols_to_join).rename(bau_renames),
+                on="year",
+            )
+        else:
+            working_df = scenario_df
 
-        comparison_df = scenario_df.join(
-            bau_df.select(bau_cols_to_join).rename(bau_renames),
-            on="year",
-        )
-
-        # Create comparison columns
+        # Create all comparison expressions
         comparison_cols = []
-        for scenario_col, bau_col in column_mappings.items():
+        for scenario_col, (baseline_col, baseline_df_name) in column_mappings.items():
             if scenario_col in compare_cols_all:
-                comparison_cols.append(pl.col(scenario_col).sub(pl.col(f"bau_{bau_col}")))
+                if baseline_df_name == "self":
+                    if baseline_col in scenario_df.columns:
+                        comparison_cols.append(pl.col(scenario_col).sub(pl.col(baseline_col)))
+                else:  # bau
+                    if baseline_col in bau_df.columns:
+                        comparison_cols.append(pl.col(scenario_col).sub(pl.col(f"bau_{baseline_col}")))
 
         # Select final columns
-        comparison_df = comparison_df.select(["year", *comparison_cols])
-        comparison_dfs[scenario_name] = comparison_df
+        if comparison_cols:
+            final_df = working_df.select(["year", *comparison_cols])
+        else:
+            final_df = working_df.select(["year"])
 
-    delta_bau_df = pl.concat(
+        comparison_dfs[scenario_name] = final_df
+
+    delta_df = pl.concat(
         [df.with_columns(pl.lit(scenario_id).alias("scenario_id")) for scenario_id, df in comparison_dfs.items()],
         how="vertical",
     )
-    return delta_bau_df
+    return delta_df
 
 
-def analyze_scenarios(
+def run_all_scenarios(
     scenario_runs: dict[str, ScenarioParams], input_params: InputParams, ts_params: TimeSeriesParams
-) -> tuple[dict[str, pl.DataFrame], pl.DataFrame]:
-    results_df = {}
+) -> dict[str, pl.DataFrame]:
+    results_dfs = {}
     for scenario_name, scenario_params in scenario_runs.items():
         logger.info(f"Running scenario: {scenario_name}")
-        results_df[scenario_name] = run_model(scenario_params, input_params, ts_params)
+        results_dfs[scenario_name] = run_model(scenario_params, input_params, ts_params)
 
-    return results_df, create_delta_bau_df(results_df, COMPARE_COLS)
+    return results_dfs
+
+
+def return_absolute_values_df(results_dfs: dict[str, pl.DataFrame], compare_cols_all: list[str]) -> pl.DataFrame:
+    filtered_results = {}
+    for scenario_name, scenario_df in results_dfs.items():
+        filtered_results[scenario_name] = scenario_df.select(["year", *compare_cols_all])
+        print(f"Added {scenario_name} with shape {scenario_df.shape}")
+
+    print(f"filtered_results keys: {filtered_results.keys()}")
+    # Concatenate and transform to long format
+    combined_df = pl.concat(
+        [df.with_columns(pl.lit(scenario_id).alias("scenario_id")) for scenario_id, df in filtered_results.items()],
+        how="vertical",
+    )
+
+    return combined_df
