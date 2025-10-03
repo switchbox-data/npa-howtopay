@@ -67,6 +67,8 @@ web_params = {
     "gas_fixed_overhead_costs": 100.0,
     "electric_fixed_overhead_costs": 100.0,
     "gas_bau_lpp_costs_per_year": 100.0,
+    "npa_year_start": 2025,
+    "npa_year_end": 2030,
     "is_scattershot": False,
 }
 
