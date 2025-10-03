@@ -17,6 +17,9 @@ class WebParams:
     electric_fixed_overhead_costs: float
     gas_bau_lpp_costs_per_year: float
     is_scattershot: bool
+    npa_year_start: Optional[int] = None
+    npa_year_end: Optional[int] = None
+
     # stuff_for_producing_ratebase_baseline
 
 
@@ -101,8 +104,16 @@ def create_time_series_from_web_params(
     web_params: WebParams, start_year: int, end_year: int, cost_inflation_rate: float = 0.0
 ) -> dict[str, pl.DataFrame]:
     """Create all time series DataFrames from web parameters"""
+    npa_year_end = web_params.npa_year_end if web_params.npa_year_end is not None else end_year
+    npa_year_start = web_params.npa_year_start if web_params.npa_year_start is not None else start_year
+
+    if npa_year_start < start_year:
+        raise ValueError("npa_year_start must be greater than or equal to SharedParams.start_year")
+    if npa_year_end > end_year:
+        raise ValueError("npa_year_end must be less than or equal to npa_end_year")
+
     return {
-        "npa_projects": create_npa_projects(web_params, start_year, end_year),
+        "npa_projects": create_npa_projects(web_params, npa_year_start, npa_year_end),
         "scattershot_electrification_users_per_year": create_scattershot_electrification_df(
             web_params, start_year, end_year
         ),
