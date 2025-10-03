@@ -10,11 +10,27 @@ package for ca_npa_howtopay
 ## Overview
 The `npa-howtopay` package provides functionality for analyzing energy costs and project economics under different expense scenarios.
 
+## Scenario Definitions
+| Scenario Name      | Description                                                                                      |
+|--------------------|--------------------------------------------------------------------------------------------------|
+| bau                | Business-as-usual (BAU): No NPA projects, baseline utility costs and spending.                   |
+| taxpayer           | All NPA costs are paid by taxpayers, not by utility customers.                                   |
+| gas_capex          | Gas utility pays for NPA projects as capital expenditures (added to gas ratebase).               |
+| gas_opex           | Gas utility pays for NPA projects as operating expenses (expensed in year incurred).             |
+| electric_capex     | Electric utility pays for NPA projects as capital expenditures (added to electric ratebase).     |
+| electric_opex      | Electric utility pays for NPA projects as operating expenses (expensed in year incurred).        |
+
+Each scenario specifies who pays for NPA projects (gas utility, electric utility, or taxpayers) and whether costs are treated as capital (capex) or operating (opex) expenses.
+
+
+
 ## Core Modules
 
 ### Main Package (`npa_howtopay`)
 - **`run_model`** - Main function to execute the cost analysis model for a single scenario
-- **`analyze_scenarios`** - Execute run_model for all scenarios and return results and delta from BAU (no NPAs) dfs.
+- **`run_all_scenarios`** - Execute run_model for all scenarios and return all results
+- **`create_delta_df`** - Selects columns of interest from all results and calculates difference from BAU (expect for converter bills which are compared to non-converter bill in each scenario)
+- **`return_absolute_values_df`** - Concats dfs from `run_all_scenarios` and filters to selected columns
 
 ### Initialize Model
 If running locally:
@@ -54,5 +70,10 @@ from npa_howtopay import run_model, load_scenario_from_yaml
   scenario_runs = create_scenario_runs(2025, 2050, ["gas", "electric"], ["capex", "opex"])
   input_params = load_scenario_from_yaml(run_name)
   ts_params = load_time_series_params_from_yaml(run_name)
-  results_df, delta_bau_df = analyze_scenarios(scenario_runs, input_params, ts_params)
+  # Run model for all scenarios
+  results_df_all = run_all_scenarios(scenario_runs, input_params, ts_params)
+  # Single df with delta values
+  delta_df = create_delta_df(results_df_all, COMPARE_COLS)
+  # Single df with absolute values
+  results_df = return_absolute_values_df(results_df_all, COMPARE_COLS)
 ```
