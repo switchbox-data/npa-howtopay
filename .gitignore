@@ -222,3 +222,4 @@ outputs/
 !docs/
 !docs/**/*
 docs/.DS_Store
+.vscode/settings.json

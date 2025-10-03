@@ -32,6 +32,7 @@ class YearContext:
     electric_maintenance_cost: float
     gas_npa_opex: float
     electric_npa_opex: float
+    gas_performance_incentive: float
 
 
 def create_scenario_runs(
@@ -60,6 +61,9 @@ def create_scenario_runs(
     scenarios = {
         "bau": ScenarioParams(start_year=start_year, end_year=end_year, bau=True),
         "taxpayer": ScenarioParams(start_year=start_year, end_year=end_year, taxpayer=True),
+        "performance_incentive": ScenarioParams(
+            start_year=start_year, end_year=end_year, performance_incentive=True, gas_electric="gas", capex_opex="opex"
+        ),
     }
 
     # Add the regular scenarios
@@ -101,7 +105,12 @@ def compute_intermediate_cols_gas(
     costs_volumetric = total_usage * input_params.gas.gas_generation_cost_per_therm(context.year)
     costs_fixed = gas_fixed_overhead_costs + context.gas_maintenance_cost + context.gas_npa_opex
     opex_costs = costs_fixed + costs_volumetric
-    revenue_requirement = context.gas_ratebase * input_params.gas.ror + opex_costs + context.gas_depreciation_expense
+    revenue_requirement = (
+        context.gas_ratebase * input_params.gas.ror
+        + opex_costs
+        + context.gas_depreciation_expense
+        + context.gas_performance_incentive
+    )
     return_on_ratebase_pct = (
         context.gas_ratebase * input_params.gas.ror
     ) / revenue_requirement  # Return on Rate Base as % of Revenue Requirement
@@ -183,11 +192,13 @@ def compute_intermediate_cols_electric(
 
 
 # Helper functions for bill cost calculations
-def inflation_adjust_revenue_requirement(revenue_req: float, year: int, start_year: int, discount_rate: float) -> float:
+def inflation_adjust_revenue_requirement(
+    revenue_req: float, year: int, start_year: int, real_dollar_discount_rate: float
+) -> float:
     """Adjust revenue requirement for inflation using discount rate."""
     if year < start_year:
         raise ValueError(f"Year {year} cannot be before start year {start_year}")
-    return revenue_req / ((1 + discount_rate) ** (year - start_year))
+    return revenue_req / ((1 + real_dollar_discount_rate) ** (year - start_year))
 
 
 # Average bill per user
@@ -371,7 +382,7 @@ def compute_bill_costs(
         pl.struct(["gas_revenue_requirement", "year"])
         .map_elements(
             lambda x: inflation_adjust_revenue_requirement(
-                x["gas_revenue_requirement"], x["year"], start_year, input_params.shared.discount_rate
+                x["gas_revenue_requirement"], x["year"], start_year, input_params.shared.real_dollar_discount_rate
             ),
             return_dtype=pl.Float64,
         )
@@ -379,7 +390,7 @@ def compute_bill_costs(
         pl.struct(["electric_revenue_requirement", "year"])
         .map_elements(
             lambda x: inflation_adjust_revenue_requirement(
-                x["electric_revenue_requirement"], x["year"], start_year, input_params.shared.discount_rate
+                x["electric_revenue_requirement"], x["year"], start_year, input_params.shared.real_dollar_discount_rate
             ),
             return_dtype=pl.Float64,
         )
@@ -518,6 +529,7 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, ts_par
     # these will be updated depending on the scenario
     gas_npa_opex = 0.0
     electric_npa_opex = 0.0
+    gas_performance_incentive = 0.0
 
     output_df = pl.DataFrame()
 
@@ -538,6 +550,8 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, ts_par
         )
     else:
         electric_capex_projects = cp.return_empty_capex_df()
+
+    gas_npa_savings = cp.return_empty_npv_savings_df()
 
     for year in range(scenario_params.start_year, scenario_params.end_year):
         # gas capex
@@ -608,6 +622,26 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, ts_par
                 electric_npa_opex = npa.compute_npa_install_costs_from_df(
                     year, ts_params.npa_projects, input_params.shared.npa_install_costs(year)
                 )
+        # calculate performance incentive
+        if scenario_params.performance_incentive:
+            gas_npa_savings = pl.concat(
+                [
+                    gas_npa_savings,
+                    cp.compute_npv_savings_from_npa_projects(
+                        year,
+                        ts_params.npa_projects,
+                        input_params.shared.npa_install_costs(year),
+                        input_params.shared.npa_lifetime,
+                        input_params.gas.pipeline_depreciation_lifetime,
+                        input_params.gas.ror,
+                        input_params.shared.npv_discount_rate,
+                        input_params.shared.performance_incentive_pct,
+                        input_params.shared.incentive_payback_period,
+                    ),
+                ],
+                how="vertical",
+            )
+            gas_performance_incentive = cp.compute_performance_incentive_this_year(year, gas_npa_savings)
 
         # calculate ratebase
         gas_ratebase = cp.compute_ratebase_from_capex_projects(year, gas_capex_projects)
@@ -638,6 +672,7 @@ def run_model(scenario_params: ScenarioParams, input_params: InputParams, ts_par
             electric_maintenance_cost=electric_maintanence_costs,
             gas_npa_opex=gas_npa_opex,
             electric_npa_opex=electric_npa_opex,
+            gas_performance_incentive=gas_performance_incentive,
         )
 
         # Calculate intermediate columns for both gas and electric

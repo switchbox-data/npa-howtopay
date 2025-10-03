@@ -99,9 +99,12 @@ class ElectricParams:
 class SharedParams:
     cost_inflation_rate: float
     construction_inflation_rate: float
-    discount_rate: float
+    real_dollar_discount_rate: float
+    npv_discount_rate: float
+    performance_incentive_pct: float
+    incentive_payback_period: int
     npa_install_costs_init: float
-    npa_lifetime: float
+    npa_lifetime: int
     start_year: int
 
     def npa_install_costs(self, year: int) -> float:
@@ -141,6 +144,7 @@ class ScenarioParams:
     end_year: int
     bau: bool = field(default=False)
     taxpayer: bool = field(default=False)
+    performance_incentive: bool = field(default=False)
     gas_electric: Optional[Literal["gas", "electric"]] = field(
         default=None, validator=validators.in_([None, "gas", "electric"])
     )

@@ -35,6 +35,23 @@ class CapexProject:
         })
 
 
+@define
+class NpvSavingsProject:
+    """Represents NPV savings from NPA projects that generate performance incentives."""
+
+    project_year: int = field()
+    savings_amount: float = field(validator=validators.ge(0.0))
+    payback_period: int = field(validator=validators.ge(1))
+
+    def to_df(self) -> pl.DataFrame:
+        return pl.DataFrame({
+            "project_year": [self.project_year],
+            "savings_amount": [self.savings_amount],
+            "payback_period": pl.Series([self.payback_period], dtype=pl.Int64),
+            "end_year": [self.project_year + self.payback_period],
+        })
+
+
 def get_synthetic_initial_capex_projects(
     start_year: int, initial_ratebase: float, depreciation_lifetime: int
 ) -> pl.DataFrame:
@@ -340,6 +357,140 @@ def compute_maintanence_costs(year: int, df: pl.DataFrame, maintenance_cost_pct:
     return float(df.select(pl.col("original_cost")).sum().item() * maintenance_cost_pct)
 
 
+def compute_npv_of_capex_investment(
+    initial_cost: float, lifetime: int, ror: float, real_dollar_discount_rate: float, year: int
+) -> float:
+    """Compute NPV of a capex investment. Year one incurrs a cost, then subsequent years earn a return equal to the ror on the annually depreciated value of the investment.
+
+    Args:
+        initial_cost: Initial investment cost
+        lifetime: Investment lifetime in years
+        ror: Rate of return on ratebase
+        real_dollar_discount_rate: Discount rate for NPV
+        year: Year of investment
+
+    Returns:
+        float: NPV of the investment
+    """
+    if initial_cost == 0:
+        return 0.0
+
+    # Initial cost (negative cash flow)
+    npv = -initial_cost
+
+    # Annual returns over lifetime
+    for t in range(1, lifetime + 1):
+        # Annual return = remaining_ratebase_value * ror
+        # Remaining value declines linearly from initial_cost to 0
+        remaining_value_fraction = max(0, 1 - (t - 1) / lifetime)
+        # Return on ratebase
+        return_on_ratebase = initial_cost * remaining_value_fraction * ror
+        # Depreciation recovery
+        depreciation_recovery = initial_cost / lifetime
+
+        # Total annual cash flow
+        annual_cash_flow = return_on_ratebase + depreciation_recovery
+
+        # Discount to present value
+        discount_factor = 1 / ((1 + real_dollar_discount_rate) ** t)
+        npv += annual_cash_flow * discount_factor
+
+    return npv
+
+
+def compute_npv_savings_from_npa_projects(
+    year: int,
+    npa_projects: pl.DataFrame,
+    npa_install_cost: float,
+    npa_lifetime: int,
+    pipeline_depreciation_lifetime: int,
+    gas_ror: float,
+    npv_discount_rate: float,
+    performance_incentive_pct: float,
+    incentive_payback_period: int,
+) -> pl.DataFrame:
+    """Generate NPV savings projects for NPA installations.
+
+    This function calculates the NPV difference between NPA investment and avoided LPP spending.
+    The savings are tracked as projects that generate performance incentives over a payback period.
+
+    Args:
+        year: The year to generate NPV savings projects for
+        npa_projects: DataFrame containing NPA project details
+        npa_install_cost: Cost per household of installing an NPA
+        npa_lifetime: Expected lifetime in years of an NPA installation
+        pipeline_depreciation_lifetime: Depreciation lifetime for avoided pipe projects
+        gas_ror: Rate of return on gas utility investments
+        npv_discount_rate: Discount rate for NPV calculations
+        performance_incentive_pct: Percentage of savings on which gas utility receives a performance incentive
+    Returns:
+        pl.DataFrame with columns:
+            - project_year: Year the NPV savings project was initiated
+            - savings_amount: Total NPV savings amount
+            - payback_period: Number of years to pay incentives
+            - end_year: Year the incentive payments end
+    """
+    npas_this_year = npa_projects.filter(pl.col("project_year") == year)
+
+    if npas_this_year.height == 0:
+        return return_empty_npv_savings_df()
+
+    # Calculate costs
+    num_converts = compute_hp_converts_from_df(year, npas_this_year, cumulative=False, npa_only=True)
+    npa_investment_cost = npa_install_cost * num_converts
+    avoided_lpp_cost = compute_npa_pipe_cost_avoided_from_df(year, npas_this_year)
+
+    # Calculate NPVs
+    npa_npv = npa_investment_cost  # npa investment is opex so costs are recouped in the same year with no ror
+
+    avoided_lpp_npv = compute_npv_of_capex_investment(
+        initial_cost=avoided_lpp_cost,
+        lifetime=pipeline_depreciation_lifetime,
+        ror=gas_ror,
+        real_dollar_discount_rate=npv_discount_rate,
+        year=year,
+    )
+
+    savings_amount = (avoided_lpp_npv - npa_npv) * performance_incentive_pct
+
+    if savings_amount > 0:
+        return NpvSavingsProject(
+            project_year=year,
+            savings_amount=savings_amount,
+            payback_period=incentive_payback_period,  # 10-year incentive period
+        ).to_df()
+    else:
+        return return_empty_npv_savings_df()
+
+
+def compute_performance_incentive_this_year(year: int, df: pl.DataFrame) -> float:
+    """Compute the ratebase value for a given year from NPV savings projects.
+
+    For each savings project, the ratebase value is the savings amount divided by payback period.
+    Projects that haven't started yet (year < project_year) have zero ratebase value.
+    Projects that are fully paid back have zero ratebase value.
+
+    Args:
+        year: The year to compute ratebase for
+        df: DataFrame containing NPV savings projects with columns:
+            - project_year: int - Year project was initiated
+            - savings_amount: float - Total NPV savings amount
+            - payback_period: int - Number of years to pay incentives
+
+    Returns:
+        float: Total ratebase value for the year across all savings projects
+    """
+    if df.height == 0:
+        return 0.0
+    df = df.with_columns(
+        pl.when((pl.lit(year) >= pl.col("project_year")) & (pl.lit(year) < pl.col("end_year")))
+        .then(pl.col("savings_amount") / pl.col("payback_period"))
+        .otherwise(pl.lit(0))
+        .alias("annual_ratebase_contribution")
+    )
+    return float(df.select(pl.col("annual_ratebase_contribution")).sum().item())
+
+
 def return_empty_capex_df() -> pl.DataFrame:
     return pl.DataFrame({
         "project_year": pl.Series([], dtype=pl.Int64),
@@ -347,4 +498,14 @@ def return_empty_capex_df() -> pl.DataFrame:
         "original_cost": pl.Series([], dtype=pl.Float64),
         "depreciation_lifetime": pl.Series([], dtype=pl.Int64),
         "retirement_year": pl.Series([], dtype=pl.Int64),
+    })
+
+
+def return_empty_npv_savings_df() -> pl.DataFrame:
+    """Return empty DataFrame for NPV savings projects with proper schema."""
+    return pl.DataFrame({
+        "project_year": pl.Series([], dtype=pl.Int64),
+        "savings_amount": pl.Series([], dtype=pl.Float64),
+        "payback_period": pl.Series([], dtype=pl.Int64),
+        "end_year": pl.Series([], dtype=pl.Int64),
     })
