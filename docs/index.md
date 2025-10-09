@@ -19,6 +19,7 @@ The `npa-howtopay` package provides functionality for analyzing energy costs and
 | gas_opex           | Gas utility pays for NPA projects as operating expenses (expensed in year incurred).             |
 | electric_capex     | Electric utility pays for NPA projects as capital expenditures (added to electric ratebase).     |
 | electric_opex      | Electric utility pays for NPA projects as operating expenses (expensed in year incurred).        |
+| performance_incentive | Cost savings are calculated as the NPV difference between avoided BAU costs and NPA costs. A percentage of savings are recovered as capex over 10 years        |
 
 Each scenario specifies who pays for NPA projects (gas utility, electric utility, or taxpayers) and whether costs are treated as capital (capex) or operating (opex) expenses.
 
