@@ -26,9 +26,12 @@ COMPARE_COLS = [
     # volumetric rate
     "gas_variable_tariff_per_therm",
     "electric_variable_tariff_per_kwh",
-    # ratebase
+    # ratebase (nominal - kept for backward compatibility)
     "gas_ratebase",
     "electric_ratebase",
+    # ratebase (inflation-adjusted)
+    "gas_inflation_adjusted_ratebase",
+    "electric_inflation_adjusted_ratebase",
     # depreciation expense
     "gas_depreciation_expense",
     "electric_depreciation_expense",

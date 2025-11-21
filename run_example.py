@@ -13,7 +13,6 @@ from npa_howtopay.utils import (
     plot_ratebase,
     plot_return_on_ratebase_pct,
     plot_revenue_requirements,
-    plot_total_bills,
     plot_user_bills_converts,
     plot_user_bills_nonconverts,
     plot_volumetric_tariff,
@@ -39,7 +38,7 @@ if __name__ == "__main__":
     plot_depreciation_accruals(plt_df_delta, show_absolute=False, save_dir="plots")
     plot_user_bills_converts(plt_df_delta, show_absolute=False, save_dir="plots")
     plot_user_bills_nonconverts(plt_df_delta, show_absolute=False, save_dir="plots")
-    plot_total_bills(plt_df_delta, show_absolute=False, save_dir="plots")
+    # plot_total_bills(plt_df_delta, show_absolute=False, save_dir="plots")
     plot_return_on_ratebase_pct(plt_df_delta, show_absolute=False, save_dir="plots")
     # For absolute values
     plt_df_absolute = transform_to_long_format(results_df)
@@ -51,8 +50,8 @@ if __name__ == "__main__":
     plot_user_bills_converts(plt_df_absolute, show_absolute=True, save_dir="plots")
     plot_user_bills_nonconverts(plt_df_absolute, show_absolute=True, save_dir="plots")
 
-    plot_total_bills(results_df, save_dir="plots")
-    plot_return_on_ratebase_pct(results_df, show_absolute=True, save_dir="plots")
+    # plot_total_bills(results_df, save_dir="plots")
+    # plot_return_on_ratebase_pct(results_df, show_absolute=True, save_dir="plots")
 
 # Method 2: Using web parameters (scalar values)
 web_params = {
