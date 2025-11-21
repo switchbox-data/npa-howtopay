@@ -157,11 +157,11 @@ def plot_ratebase(
     show_absolute: bool = False,
     save_dir: Optional[str] = None,
 ) -> None:
-    """Ratebase - Faceted"""
+    """Ratebase - Faceted (inflation-adjusted)"""
     plot_utility_metric(
         plt_df=plt_df,
-        column="ratebase",
-        title="Ratebase",
+        column="inflation_adjusted_ratebase",
+        title="Ratebase (Real Dollars)",
         y_label_unit="$",
         show_absolute=show_absolute,
         save_dir=save_dir,
@@ -244,6 +244,7 @@ def plot_total_bills(
     delta_bau_df: pl.DataFrame,
     scenario_colors: dict = switchbox_colors,
     scenario_line_styles: dict = line_styles,
+    show_absolute: bool = False,
     save_dir: Optional[str] = None,
 ) -> None:
     """Total Bills - Faceted"""
@@ -255,10 +256,14 @@ def plot_total_bills(
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
 
     # Determine y-axis label based on show_absolute parameter
-    y_label = "User bills (total)"
+    y_label = "User bills (total)" if show_absolute else "Delta User bills (total)"
 
     # Gas facet
     ax1.set_title("Converts", fontsize=14, fontweight="bold")
+
+    # Add horizontal line at y=0 for delta plots
+    if not show_absolute:
+        ax1.axhline(y=0, color="#333333", linestyle="-", alpha=0.5)
 
     for i, scenario in enumerate(delta_bau_df["scenario_id"].unique()):
         color = scenario_colors.get(scenario, "#666666")
@@ -281,6 +286,10 @@ def plot_total_bills(
     # Electric facet
     ax2.set_title("Nonconverts", fontsize=14, fontweight="bold")
 
+    # Add horizontal line at y=0 for delta plots
+    if not show_absolute:
+        ax2.axhline(y=0, color="#333333", linestyle="-", alpha=0.5)
+
     for i, scenario in enumerate(delta_bau_df["scenario_id"].unique()):
         color = scenario_colors.get(scenario, "#666666")
         linestyle = scenario_line_styles.get(scenario, "solid")
@@ -299,12 +308,12 @@ def plot_total_bills(
     ax2.grid(True, alpha=0.3)
     ax2.legend()
     title = "Total User Bills"
-    title_suffix = "(Delta from BAU)"
+    title_suffix = " (Absolute Values)" if show_absolute else " (Delta from BAU)"
     plt.suptitle(f"{title}{title_suffix}", fontsize=16, fontweight="bold")
     plt.tight_layout()
 
     if save_dir:
-        value_type = "delta"
+        value_type = "absolute" if show_absolute else "delta"
         # Create filename from title (lowercase, replace spaces with underscores)
         filename_base = title.lower().replace(" ", "_")
         filename = f"{filename_base}_{value_type}.png"

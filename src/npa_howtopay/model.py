@@ -398,6 +398,26 @@ def compute_bill_costs(
         (pl.col("gas_revenue_requirement") + pl.col("electric_revenue_requirement")).alias("total_revenue_requirement"),
     ])
 
+    # Create inflation-adjusted ratebase columns
+    df = df.with_columns([
+        pl.struct(["gas_ratebase", "year"])
+        .map_elements(
+            lambda x: inflation_adjust_revenue_requirement(
+                x["gas_ratebase"], x["year"], start_year, input_params.shared.real_dollar_discount_rate
+            ),
+            return_dtype=pl.Float64,
+        )
+        .alias("gas_inflation_adjusted_ratebase"),
+        pl.struct(["electric_ratebase", "year"])
+        .map_elements(
+            lambda x: inflation_adjust_revenue_requirement(
+                x["electric_ratebase"], x["year"], start_year, input_params.shared.real_dollar_discount_rate
+            ),
+            return_dtype=pl.Float64,
+        )
+        .alias("electric_inflation_adjusted_ratebase"),
+    ])
+
     # Create gas and electric tariffs columns (and total inflation adjusted revenue requirement)
     df = df.with_columns([
         (
