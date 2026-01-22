@@ -14,7 +14,7 @@ package for ca_npa_howtopay
 - **Documentation** <https://switchbox-data.github.io/npa-howtopay/>
 
 ## Overview
-`npa-howtopay` analyzes impact of targeted electrification projects on utilities and customers under different expense scenarios. It compares utility and taxpayer impacts across scenarios where NPA (Non-Pipeline Alternatives) costs are treated as capex or opex and allocated to gas, electric, or taxpayers.
+`npa-howtopay` analyzes impact of targeted electrification projects on utilities and customers under different expense scenarios. It compares impacts across scenarios where NPA (Non-Pipeline Alternatives) costs are treated as capex or opex and allocated to gas utilities, electric utilities, or taxpayers.
 
 ## Installation (GitHub)
 Requires Python >= 3.9.
