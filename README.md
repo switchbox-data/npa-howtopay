@@ -13,64 +13,70 @@ package for ca_npa_howtopay
 - **Github repository**: <https://github.com/switchbox-data/npa-howtopay/>
 - **Documentation** <https://switchbox-data.github.io/npa-howtopay/>
 
-## Getting started with your project
+## Overview
+`npa-howtopay` analyzes impact of targeted electrification projects on utilities and customers under different expense scenarios. It compares utility and taxpayer impacts across scenarios where NPA (Non-Pipeline Alternatives) costs are treated as capex or opex and allocated to gas, electric, or taxpayers.
 
-### 1. Create a New Repository
-
-First, create a repository on GitHub with the same name as this project, and then run the following commands:
-
-```bash
-git init -b main
-git add .
-git commit -m "init commit"
-git remote add origin git@github.com:switchbox-data/npa-howtopay.git
-git push -u origin main
-```
-
-### 2. Set Up Your Development Environment
-
-Then, install the environment and the pre-commit hooks with
+## Installation (GitHub)
+Requires Python >= 3.9.
 
 ```bash
-make install
+pip install git+https://github.com/switchbox-data/npa-howtopay.git
 ```
 
-This will also generate your `uv.lock` file
-
-### 3. Run the pre-commit hooks
-
-Initially, the CI/CD pipeline might be failing due to formatting issues. To resolve those run:
-
+Optional: install a specific tag.
 ```bash
-uv run pre-commit run -a
+pip install git+https://github.com/switchbox-data/npa-howtopay.git@v0.0.1
 ```
 
-### 4. Commit the changes
+## Quickstart (local run)
+```python
+from npa_howtopay.model import (
+    create_scenario_runs,
+    run_all_scenarios,
+    create_delta_df,
+    return_absolute_values_df,
+)
+from npa_howtopay.params import (
+    COMPARE_COLS,
+    load_scenario_from_yaml,
+    load_time_series_params_from_yaml,
+)
 
-Lastly, commit the changes made by the two steps above to your repository.
+run_name = "sample"  # must match the YAML file name in npa_howtopay/data
+scenario_runs = create_scenario_runs(2025, 2050, ["gas", "electric"], ["capex", "opex"])
 
-```bash
-git add .
-git commit -m 'Fix formatting issues'
-git push origin main
+input_params = load_scenario_from_yaml(run_name)
+ts_params = load_time_series_params_from_yaml(run_name)
+
+results_df_all = run_all_scenarios(scenario_runs, input_params, ts_params)
+
+delta_df = create_delta_df(results_df_all, COMPARE_COLS)
+absolute_df = return_absolute_values_df(results_df_all, COMPARE_COLS)
 ```
 
-You are now ready to start development on your project!
-The CI/CD pipeline will be triggered when you open a pull request, merge to main, or when you create a new release.
+## Scenario Definitions
+| Scenario Name          | Description                                                                                      |
+|------------------------|--------------------------------------------------------------------------------------------------|
+| bau                    | Business-as-usual (BAU): No NPA projects, baseline utility costs and spending.                   |
+| taxpayer               | All NPA costs are paid by taxpayers, not by utility customers.                                   |
+| gas_capex              | Gas utility pays for NPA projects as capital expenditures (added to gas ratebase).               |
+| gas_opex               | Gas utility pays for NPA projects as operating expenses (expensed in year incurred).             |
+| electric_capex         | Electric utility pays for NPA projects as capital expenditures (added to electric ratebase).     |
+| electric_opex          | Electric utility pays for NPA projects as operating expenses (expensed in year incurred).        |
+| performance_incentive  | Cost savings are NPV(BAU) - NPV(NPA); a share is recovered as capex over 10 years.                |
 
-To finalize the set-up for publishing to PyPI, see [here](https://fpgmaas.github.io/cookiecutter-uv/features/publishing/#set-up-for-pypi).
-For activating the automatic documentation with MkDocs, see [here](https://fpgmaas.github.io/cookiecutter-uv/features/mkdocs/#enabling-the-documentation-on-github).
-To enable the code coverage reports, see [here](https://fpgmaas.github.io/cookiecutter-uv/features/codecov/).
+## Data Inputs
+- Scenario and time series inputs can be provided via YAML files located in `npa_howtopay/data`.
+- For web app runs, time series can be built from user constants via:
+  - `load_time_series_params_from_web_params` in `npa_howtopay.params`
 
-## Releasing a new version
+## API Highlights
+- `run_model`: Run the model for a single scenario
+- `run_all_scenarios`: Run across scenarios and return a dict of results
+- `create_delta_df`: Compute BAU deltas for selected columns
+- `return_absolute_values_df`: Combine results into a single dataframe
 
-- Create an API Token on [PyPI](https://pypi.org/).
-- Add the API Token to your projects secrets with the name `PYPI_TOKEN` by visiting [this page](https://github.com/switchbox-data/npa-howtopay/settings/secrets/actions/new).
-- Create a [new release](https://github.com/switchbox-data/npa-howtopay/releases/new) on Github.
-- Create a new tag in the form `*.*.*`.
-
-For more details, see [here](https://fpgmaas.github.io/cookiecutter-uv/features/cicd/#how-to-trigger-a-release).
-
----
-
-Repository initiated with [fpgmaas/cookiecutter-uv](https://github.com/fpgmaas/cookiecutter-uv).
+## Links
+- Repository: https://github.com/switchbox-data/npa-howtopay
+- Documentation: https://switchbox-data.github.io/npa-howtopay/
+- App: https://switchbox.shinyapps.io/npa_how_to_pay_app/
